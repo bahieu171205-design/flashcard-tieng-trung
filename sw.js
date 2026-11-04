@@ -1,6 +1,6 @@
 // Lưu sẵn các file của app để mở được khi không có mạng.
 // Mỗi lần mở app có mạng, bản mới (nếu có) được tải về và dùng ở lần mở sau.
-const CACHE = "flashcard-zh-v2";
+const CACHE = "flashcard-zh-v3";
 const FILES = ["./", "./index.html", "./vocab.js", "./manifest.webmanifest",
                "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png"];
 

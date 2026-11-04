@@ -49,10 +49,12 @@ class Progress:
     def __init__(self):
         self.known = set()
         self.best = {}
+        self.range = [1, 30]  # phạm vi bài để trộn/ôn: [từ bài, đến bài]
         try:
             data = json.loads(PROGRESS_FILE.read_text(encoding="utf-8"))
             self.known = set(data.get("known", []))
             self.best = data.get("best", {})
+            self.range = list(data.get("range", self.range))
         except (OSError, ValueError):
             pass
 
@@ -80,7 +82,7 @@ class Progress:
         self.known.clear()
 
     def save(self):
-        data = {"known": sorted(self.known), "best": self.best}
+        data = {"known": sorted(self.known), "best": self.best, "range": self.range}
         tmp = PROGRESS_FILE.with_suffix(".tmp")
         tmp.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
         tmp.replace(PROGRESS_FILE)

@@ -7,14 +7,27 @@ from .ui import C, H, W, Button, PressTracker, Toggle, draw_text, fit, rrect
 
 
 class HomeScene(Scene):
-    COLS, GAP, TOP, TILE_H = 6, 14, 214, 98
+    COLS, GAP, TOP, TILE_H = 6, 14, 214, 92
+    RANGE_BOX = pygame.Rect(40, 108, W - 80, 62)
+    # ô chọn "Học từ [− Bài a +] đến [− Bài b +]": vị trí x của nút − mỗi ô
+    STEP_X = (126, 346)
 
     def __init__(self, app):
         super().__init__(app)
         self.confirm_reset = 0
-        self.btn_unknown = Button((40, 116, 262, 46), "Ôn tất cả từ chưa thuộc", "primary")
-        self.btn_mix = Button((314, 116, 200, 46), "Trộn cả 30 bài")
-        self.btn_reset = Button((W - 40 - 230, 116, 230, 46), "Xóa tiến độ", "ghost", size=16)
+        n = len(app.lessons)
+        a = max(1, min(n, int(app.progress.range[0])))
+        app.progress.range = [a, max(a, min(n, int(app.progress.range[1])))]
+        cy = self.RANGE_BOX.centery
+        self.steps = []  # (nút −, ô số, nút +) cho "từ" và "đến"
+        for x in self.STEP_X:
+            self.steps.append((Button((x, cy - 20, 40, 40), "−", size=20),
+                               pygame.Rect(x + 44, cy - 20, 76, 40),
+                               Button((x + 124, cy - 20, 40, 40), "+", size=20)))
+        right = self.RANGE_BOX.right - 12
+        self.btn_unknown = Button((right - 250, cy - 23, 250, 46), "", size=16)
+        self.btn_mix = Button((right - 250 - 12 - 200, cy - 23, 200, 46), "", "primary", size=16)
+        self.btn_reset = Button((W - 40 - 190, H - 40, 190, 34), "Xóa tiến độ", "ghost", size=14)
         tw = (W - 80 - self.GAP * (self.COLS - 1)) // self.COLS
         self.tiles = []
         for i, lesson in enumerate(app.lessons):
@@ -23,13 +36,41 @@ class HomeScene(Scene):
             self.tiles.append((lesson, rect))
         self.tile_press = [PressTracker() for _ in self.tiles]
 
+    # ---------- phạm vi bài ----------
+    def range_words(self):
+        a, b = self.app.progress.range
+        return [w for l in self.app.lessons if a <= l.bai <= b for w in l.words]
+
+    def set_range(self, which, value):
+        """which = 0: 'từ bài', 1: 'đến bài'. Luôn giữ từ ≤ đến."""
+        rng = self.app.progress.range
+        rng[which] = max(1, min(len(self.app.lessons), value))
+        if rng[0] > rng[1]:
+            rng[1 - which] = rng[which]
+        self.app.save()
+
     def handle(self, e):
         app = self.app
+        a, b = app.progress.range
+        span = f"bài {a}" if a == b else f"bài {a}–{b}"
+        for which, (minus, box, plus) in enumerate(self.steps):
+            if minus.clicked(e):
+                return self.set_range(which, app.progress.range[which] - 1)
+            if plus.clicked(e):
+                return self.set_range(which, app.progress.range[which] + 1)
+            if e.type == pygame.MOUSEWHEEL and box.inflate(88, 0).collidepoint(pygame.mouse.get_pos()):
+                return self.set_range(which, app.progress.range[which] + (1 if e.y > 0 else -1))
         if self.btn_unknown.clicked(e):
-            words = [w for w in app.all_words if not app.progress.is_known(w)]
-            app.go(ModeScene(app, "Từ chưa thuộc · cả 30 bài", words, "unknown", app.all_words))
+            ws = self.range_words()
+            app.go(ModeScene(app, f"Từ chưa thuộc · {span}", [w for w in ws if not app.progress.is_known(w)],
+                             f"unknown{a}-{b}", ws))
         elif self.btn_mix.clicked(e):
-            app.go(ModeScene(app, "Cả 30 bài", app.all_words, "all", app.all_words))
+            if a == b:
+                l = app.lessons[a - 1]
+                app.go(ModeScene(app, f"Bài {l.bai} · {l.ten}", l.words, f"bai{l.bai}", l.words))
+            else:
+                ws = self.range_words()
+                app.go(ModeScene(app, f"Trộn {span}", ws, f"range{a}-{b}", ws))
         elif self.btn_reset.clicked(e):
             if self.confirm_reset > 0:
                 app.progress.reset()
@@ -68,11 +109,30 @@ class HomeScene(Scene):
             draw_text(s, label, 13, C["muted"], (r.x + 14, r.y + 38))
             x = r.x - 10
 
-        self.btn_unknown.enabled = known < total
-        for b in (self.btn_unknown, self.btn_mix, self.btn_reset):
-            b.draw(s)
-        draw_text(s, "Chọn bài học", 18, C["ink"], (40, 182), bold=True)
+        # ô chọn phạm vi bài
+        a, b = app.progress.range
+        box = self.RANGE_BOX
+        rrect(s, C["surface"], box, radius=16, border=1, shadow=2)
+        draw_text(s, "Học từ", 16, C["ink"], (box.x + 16, box.centery), "midleft", True)
+        draw_text(s, "đến", 16, C["ink"], (self.STEP_X[1] - 14, box.centery), "midright", True)
+        for which, (minus, vbox, plus) in enumerate(self.steps):
+            val = (a, b)[which]
+            minus.enabled, plus.enabled = val > 1, val < len(app.lessons)
+            rrect(s, C["bg"], vbox, radius=10, border=1)
+            draw_text(s, f"Bài {val}", 17, C["ink"], vbox.center, "center", True)
+            minus.draw(s)
+            plus.draw(s)
+        ws = self.range_words()
+        unk = sum(not app.progress.is_known(w) for w in ws)
+        draw_text(s, f"{len(ws)} từ", 15, C["muted"], (self.STEP_X[1] + 182, box.centery), "midleft")
+        self.btn_mix.label = f"Học bài {a}" if a == b else f"Trộn bài {a}–{b}"
+        self.btn_unknown.label = f"Ôn từ chưa thuộc ({unk})" if unk else "Đã thuộc hết phạm vi này"
+        self.btn_unknown.enabled = unk > 0
+        for btn in (self.btn_mix, self.btn_unknown, self.btn_reset):
+            btn.draw(s)
+        draw_text(s, "Chọn bài học", 18, C["ink"], (40, 184), bold=True)
 
+        full = a == 1 and b == len(app.lessons)
         mouse = pygame.mouse.get_pos()
         for (lesson, rect), press in zip(self.tiles, self.tile_press):
             n = len(lesson.words)
@@ -80,14 +140,16 @@ class HomeScene(Scene):
             hov = rect.collidepoint(mouse)
             down = hov and press.armed
             done = n and k == n
+            # tô nền các bài trong phạm vi (khi đã thu hẹp phạm vi)
+            bg = C["tint"] if not full and a <= lesson.bai <= b else C["surface"]
             r = rect.inflate(-8, -6) if down else rect.move(0, -3) if hov else rect
             border = C["accent"] if hov else C["good"] if done else C["line"]
-            rrect(s, C["surface"], r, radius=14, border=2 if (hov or done) else 1, border_color=border,
+            rrect(s, bg, r, radius=14, border=2 if (hov or done) else 1, border_color=border,
                   shadow=0 if down else 4 if hov else 2)
-            draw_text(s, f"Bài {lesson.bai}", 14, C["muted"], (r.x + 14, r.y + 11))
-            draw_text(s, fit(lesson.ten, 19, r.w - 28, True), 19, C["ink"], (r.x + 14, r.y + 33), bold=True)
-            draw_text(s, f"{k}/{n} từ đã thuộc", 13, C["muted"], (r.x + 14, r.bottom - 36))
-            ui.bar(s, (r.x + 14, r.bottom - 15, r.w - 28, 6), k / n if n else 0, C["good"])
+            draw_text(s, f"Bài {lesson.bai}", 14, C["muted"], (r.x + 14, r.y + 9))
+            draw_text(s, fit(lesson.ten, 19, r.w - 28, True), 19, C["ink"], (r.x + 14, r.y + 30), bold=True)
+            draw_text(s, f"{k}/{n} từ đã thuộc", 13, C["muted"], (r.x + 14, r.bottom - 34))
+            ui.bar(s, (r.x + 14, r.bottom - 14, r.w - 28, 6), k / n if n else 0, C["good"])
             if done:
                 ui.check_icon(s, (r.right - 20, r.y + 20), C["good"])
 

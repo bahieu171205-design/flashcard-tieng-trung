@@ -142,6 +142,26 @@
   .good-t { color: var(--good); } .accent-t { color: var(--accent); }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 22px; }
   .grow { flex: 1; }
+  .range-card {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px;
+    margin-bottom: 22px; box-shadow: var(--shadow);
+  }
+  .range-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-weight: 600; }
+  .range-pick .muted { font-weight: 400; margin-left: 4px; }
+  .range-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  select {
+    font: inherit; font-size: 16px; font-weight: 600; color: var(--ink); min-height: 44px;
+    padding: 8px 34px 8px 14px; border-radius: 12px; border: 1px solid var(--line); background-color: var(--bg);
+    -webkit-appearance: none; appearance: none; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: right 16px center, right 11px center; background-size: 5px 5px; background-repeat: no-repeat;
+    transition: border-color var(--normal) var(--ease);
+  }
+  select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  @media (hover: hover) and (pointer: fine) { select:hover { border-color: var(--accent); } }
+  .lesson.in { background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface)); }
+  .foot-actions { display: flex; justify-content: flex-end; margin-top: 22px; }
   .section { font-size: 17px; margin: 0 0 12px; }
   .lessons { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
   .lesson {
@@ -376,7 +396,12 @@ const STORE_KEY = "flashcard-zh-v2";
 const store = (() => {
   let d = {};
   try { d = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { d = {}; }
-  return { known: new Set(d.known || []), best: d.best || {}, settings: Object.assign({ rieng: true, reverse: false }, d.settings) };
+  const st = Object.assign({ rieng: true, reverse: false, from: 1, to: LESSONS.length }, d.settings);
+  // phạm vi bài để trộn/ôn: luôn hợp lệ và from ≤ to
+  const clamp = n => Math.min(LESSONS.length, Math.max(1, parseInt(n, 10) || 1));
+  st.from = clamp(st.from);
+  st.to = Math.max(st.from, clamp(st.to));
+  return { known: new Set(d.known || []), best: d.best || {}, settings: st };
 })();
 function save() {
   try {
@@ -481,7 +506,13 @@ function show(render) {
 document.addEventListener("keydown", e => { if (keyHandler) keyHandler(e); });
 
 // ================= màn chính =================
+const lessonOptions = sel => LESSON_LIST.map(l =>
+  `<option value="${l.bai}" ${l.bai === sel ? "selected" : ""}>Bài ${l.bai}</option>`).join("");
+const rangeWords = () => LESSON_LIST.filter(l => l.bai >= store.settings.from && l.bai <= store.settings.to)
+  .flatMap(l => l.words);
+
 function Home(root) {
+  const st = store.settings;
   const total = ALL.length, known = ALL.filter(isKnown).length;
   root.innerHTML = `
     <header class="home-head">
@@ -495,11 +526,18 @@ function Home(root) {
         <div class="stat"><b class="accent-t">${total - known}</b><span>chưa thuộc</span></div>
       </div>
     </header>
-    <div class="actions">
-      <button class="btn primary" data-act="unknown" ${known === total ? "disabled" : ""}>Ôn tất cả từ chưa thuộc</button>
-      <button class="btn" data-act="mix">Trộn cả 30 bài</button>
-      <span class="grow"></span>
-      <button class="btn ghost" data-act="reset">Xóa tiến độ</button>
+    <div class="range-card">
+      <div class="range-pick">
+        <span>Học từ</span>
+        <select id="from" aria-label="Từ bài">${lessonOptions(st.from)}</select>
+        <span>đến</span>
+        <select id="to" aria-label="Đến bài">${lessonOptions(st.to)}</select>
+        <span class="muted" id="rcount"></span>
+      </div>
+      <div class="range-actions">
+        <button class="btn primary" data-act="mix" id="mixbtn"></button>
+        <button class="btn" data-act="unknown" id="unkbtn"></button>
+      </div>
     </div>
     <h2 class="section">Chọn bài học</h2>
     <div class="lessons">${LESSON_LIST.map(l => {
@@ -510,7 +548,38 @@ function Home(root) {
         <span class="cnt">${k}/${n} từ đã thuộc</span>
         <span class="bar"><i style="width:${n ? k / n * 100 : 0}%"></i></span>
       </button>`;
-    }).join("")}</div>`;
+    }).join("")}</div>
+    <div class="foot-actions"><button class="btn ghost" data-act="reset">Xóa tiến độ</button></div>`;
+
+  // cập nhật số từ, chữ trên nút và tô các bài trong phạm vi
+  function updateRange() {
+    const ws = rangeWords(), unk = ws.filter(w => !isKnown(w)).length;
+    const one = st.from === st.to;
+    $("#rcount", root).textContent = `${ws.length} từ`;
+    $("#mixbtn", root).textContent = one ? `Học bài ${st.from}` : `Trộn bài ${st.from}–${st.to}`;
+    const ub = $("#unkbtn", root);
+    ub.textContent = unk ? `Ôn từ chưa thuộc (${unk})` : "Đã thuộc hết phạm vi này";
+    ub.disabled = !unk;
+    // chỉ tô các bài trong phạm vi khi đã thu hẹp (cả 30 bài thì không cần tô)
+    const full = st.from === 1 && st.to === LESSON_LIST.length;
+    root.querySelectorAll(".lesson").forEach(b => {
+      const n = +b.dataset.bai;
+      b.classList.toggle("in", !full && n >= st.from && n <= st.to);
+    });
+  }
+  root.onchange = e => {
+    const from = $("#from", root), to = $("#to", root);
+    if (e.target === from) {
+      st.from = +from.value;
+      if (st.to < st.from) { st.to = st.from; to.value = st.to; }
+    } else if (e.target === to) {
+      st.to = +to.value;
+      if (st.from > st.to) { st.from = st.to; from.value = st.from; }
+    } else return;
+    save();
+    updateRange();
+  };
+  updateRange();
 
   let resetTimer = 0;
   root.onclick = e => {
@@ -521,10 +590,18 @@ function Home(root) {
       const l = LESSON_LIST[b.dataset.bai - 1];
       sfx("click");
       show(r => Mode(r, `Bài ${l.bai} · ${l.ten}`, l.words, `bai${l.bai}`, l.words));
-    } else if (act === "unknown") {
-      show(r => Mode(r, "Từ chưa thuộc · cả 30 bài", ALL.filter(w => !isKnown(w)), "unknown", ALL));
-    } else if (act === "mix") {
-      show(r => Mode(r, "Cả 30 bài", ALL, "all", ALL));
+    } else if (act === "unknown" || act === "mix") {
+      const ws = rangeWords(), { from, to } = st;
+      const span = from === to ? `bài ${from}` : `bài ${from}–${to}`;
+      sfx("click");
+      if (act === "unknown") {
+        show(r => Mode(r, `Từ chưa thuộc · ${span}`, ws.filter(w => !isKnown(w)), `unknown${from}-${to}`, ws));
+      } else if (from === to) {
+        const l = LESSON_LIST[from - 1];
+        show(r => Mode(r, `Bài ${l.bai} · ${l.ten}`, l.words, `bai${l.bai}`, l.words));
+      } else {
+        show(r => Mode(r, `Trộn ${span}`, ws, `range${from}-${to}`, ws));
+      }
     } else if (act === "reset") {
       if (b.dataset.confirm) {
         store.known.clear();

@@ -16,6 +16,7 @@ C = {
     "accent": (184, 50, 42),
     "accent_dark": (150, 38, 32),
     "accent_soft": (246, 225, 221),
+    "tint": (251, 240, 236),  # nền nhạt cho các bài trong phạm vi đang chọn
     "good": (47, 125, 79),
     "good_soft": (220, 239, 226),
     "bad": (184, 50, 42),
