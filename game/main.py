@@ -6,19 +6,35 @@ import pygame  # noqa: E402
 
 from . import ui  # noqa: E402
 from .audio import Audio  # noqa: E402
-from .data import Progress, load_lessons  # noqa: E402
+from .data import Progress, load_volumes  # noqa: E402
 
 
 class App:
     def __init__(self, screen):
         self.screen = screen
-        self.lessons = load_lessons()
-        self.all_words = [w for l in self.lessons for w in l.words]
+        self.volumes = load_volumes()
         self.progress = Progress()
+        self.use_volume(self.progress.vol)
         self.audio = Audio()
         self.settings = {"rieng": True, "reverse": False}
         self.scene = None
         self.running = True
+
+    def use_volume(self, vol_id):
+        """Chọn tập đang học: bài, từ, phạm vi bài và kỷ lục đều theo tập này."""
+        self.vol = next((v for v in self.volumes if v.id == vol_id), self.volumes[0])
+        self.lessons = self.vol.lessons
+        self.all_words = self.vol.words
+        self.progress.vol = self.vol.id
+        lo, hi = self.lessons[0].bai, self.lessons[-1].bai
+        a, b = self.progress.ranges.get(self.vol.id, [lo, hi])
+        a = max(lo, min(hi, int(a)))
+        self.progress.ranges[self.vol.id] = [a, max(a, min(hi, int(b)))]
+
+    @property
+    def range(self):
+        """[từ bài, đến bài] của tập đang học (sửa trực tiếp danh sách này)."""
+        return self.progress.ranges[self.vol.id]
 
     def go(self, scene):
         self.scene = scene

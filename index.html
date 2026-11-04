@@ -173,6 +173,29 @@
   }
   select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   @media (hover: hover) and (pointer: fine) { select:hover { border-color: var(--accent); } }
+  .book-pick {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; min-height: 36px; padding: 4px 12px 4px 14px;
+    border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    font-size: 15px; font-weight: 600; transition: border-color var(--normal) var(--ease), transform var(--fast) var(--ease);
+  }
+  .book-pick:active { transform: scale(.97); }
+  .book-pick .chev { width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+  @media (hover: hover) and (pointer: fine) { .book-pick:hover { border-color: var(--accent); color: var(--ink); } }
+  .book-name { margin-top: 18px; }
+  .vols { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .vol {
+    position: relative; text-align: left; display: flex; flex-direction: column; gap: 6px; padding: 18px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+    transition: transform var(--fast) var(--ease), border-color var(--normal) var(--ease);
+  }
+  .vol:active { transform: scale(.98); }
+  .vol.cur { border: 2px solid var(--good); }
+  .vol .pill { position: absolute; top: 14px; right: 14px; }
+  .vol-name { font-size: 22px; font-weight: 700; }
+  .vol-goc { color: var(--muted); font-size: 16px; }
+  .vol .bar { margin-top: 6px; }
+  @media (hover: hover) and (pointer: fine) { .vol:hover { border-color: var(--accent); transform: translateY(-2px); } }
+  .add-note { margin-top: 22px; font-size: 14px; }
   .lesson.in { background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface)); }
   .foot-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; }
   .ver { font-size: 13px; }
@@ -402,28 +425,49 @@
 "use strict";
 
 // ================= dữ liệu =================
-const word = (bai, hz, py, vi, hv, rieng) => ({ bai, hz, py, vi, hv, rieng, key: `${bai}|${hz}|${vi}` });
-const LESSON_LIST = LESSONS.map(l => ({
-  bai: l.bai, ten: l.ten,
-  words: [
-    ...l.tu.map(([hz, py, vi, hv]) => word(l.bai, hz, py, vi, hv, false)),
-    ...(l.rieng || []).map(([hz, py, vi]) => word(l.bai, hz, py, vi, "", true)),
-  ],
-}));
-const ALL = LESSON_LIST.flatMap(l => l.words);
+// Sách → Tập → Bài. Mỗi tập có tiến độ, kỷ lục và phạm vi bài riêng.
+const VOLUMES = BOOKS.flatMap(b => b.taps.map(t => ({ ...t, book: b.ten })));
+// tiến độ lưu trước khi có chức năng chọn sách/tập đều thuộc tập này
+const OLD_VOL = "boya-sc1";
+const volWords = v => v.lessons.flatMap(l => [
+  ...l.tu.map(([hz, py, vi, hv]) => ({ bai: l.bai, hz, py, vi, hv, rieng: false, key: `${v.id}|${l.bai}|${hz}|${vi}` })),
+  ...(l.rieng || []).map(([hz, py, vi]) => ({ bai: l.bai, hz, py, vi, hv: "", rieng: true, key: `${v.id}|${l.bai}|${hz}|${vi}` })),
+]);
+let VOL, LESSON_LIST, ALL;
 
 // tiến độ lưu trong trình duyệt của từng máy
 const STORE_KEY = "flashcard-zh-v2";
 const store = (() => {
   let d = {};
   try { d = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { d = {}; }
-  const st = Object.assign({ rieng: true, reverse: false, from: 1, to: LESSONS.length }, d.settings);
-  // phạm vi bài để trộn/ôn: luôn hợp lệ và from ≤ to
-  const clamp = n => Math.min(LESSONS.length, Math.max(1, parseInt(n, 10) || 1));
-  st.from = clamp(st.from);
-  st.to = Math.max(st.from, clamp(st.to));
-  return { known: new Set(d.known || []), best: d.best || {}, settings: st };
+  const old = d.settings || {};
+  const st = Object.assign({ rieng: true, reverse: false, vol: VOLUMES[0].id, ranges: {} }, old);
+  // chuyển dữ liệu kiểu cũ (chỉ có 1 tập) sang tập OLD_VOL
+  if (old.from && !old.ranges) st.ranges[OLD_VOL] = [old.from, old.to];
+  const known = new Set((d.known || []).map(k => /^\d+\|/.test(k) ? `${OLD_VOL}|${k}` : k));
+  const best = {};
+  for (const [k, v] of Object.entries(d.best || {})) {
+    const i = k.indexOf("|"), scope = k.slice(i + 1);
+    best[scope.includes(":") ? k : `${k.slice(0, i)}|${OLD_VOL}:${scope}`] = v;
+  }
+  return { known, best, settings: st };
 })();
+
+function useVolume(id) {
+  VOL = VOLUMES.find(v => v.id === id) || VOLUMES[0];
+  ALL = volWords(VOL);
+  LESSON_LIST = VOL.lessons.map(l => ({ bai: l.bai, ten: l.ten, words: ALL.filter(w => w.bai === l.bai) }));
+  // phạm vi bài (theo số bài của sách) của tập này: luôn hợp lệ và from ≤ to
+  const st = store.settings;
+  const lo = LESSON_LIST[0].bai, hi = LESSON_LIST[LESSON_LIST.length - 1].bai;
+  const clamp = x => Math.min(hi, Math.max(lo, parseInt(x, 10) || lo));
+  const [a, b] = st.ranges[VOL.id] || [lo, hi];
+  st.vol = VOL.id;
+  st.from = clamp(a);
+  st.to = Math.max(st.from, clamp(b));
+}
+useVolume(store.settings.vol);
+
 function save() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({ known: [...store.known], best: store.best, settings: store.settings }));
@@ -431,9 +475,9 @@ function save() {
 }
 const isKnown = w => store.known.has(w.key);
 const setKnown = (w, v) => v ? store.known.add(w.key) : store.known.delete(w.key);
-const bestScore = (mode, scope) => store.best[`${mode}|${scope}`] || 0;
+const bestScore = (mode, scope) => store.best[`${mode}|${VOL.id}:${scope}`] || 0;
 function submitScore(mode, scope, score) {
-  const k = `${mode}|${scope}`;
+  const k = `${mode}|${VOL.id}:${scope}`;
   const rec = score > (store.best[k] || 0);
   if (rec) store.best[k] = score;
   save();
@@ -520,7 +564,7 @@ const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
-const APP_VERSION = 5;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
+const APP_VERSION = 6;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
 let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {
@@ -542,6 +586,7 @@ const lessonOptions = sel => LESSON_LIST.map(l =>
   `<option value="${l.bai}" ${l.bai === sel ? "selected" : ""}>Bài ${l.bai}</option>`).join("");
 const rangeWords = () => LESSON_LIST.filter(l => l.bai >= store.settings.from && l.bai <= store.settings.to)
   .flatMap(l => l.words);
+const lessonByBai = n => LESSON_LIST.find(l => l.bai === n);
 
 function Home(root) {
   const st = store.settings;
@@ -550,7 +595,10 @@ function Home(root) {
     <header class="home-head">
       <div class="brand">
         <div class="seal hz">学</div>
-        <div><h1>Flashcard Tiếng Trung</h1><p class="sub">Boya <span class="hz">博雅汉语</span> · Sơ cấp I · 30 bài</p></div>
+        <div><h1>Flashcard Tiếng Trung</h1>
+          <button class="book-pick" data-act="books" aria-label="Đổi sách hoặc tập">
+            <span>${esc(VOL.book)} · ${esc(VOL.ten)}</span><span class="chev" aria-hidden="true"></span>
+          </button></div>
       </div>
       <div class="stats">
         <div class="stat"><b>${total}</b><span>tổng số từ</span></div>
@@ -583,7 +631,7 @@ function Home(root) {
     }).join("")}</div>
     <div class="foot-actions">
       <span class="muted ver">Phiên bản ${APP_VERSION}</span>
-      <button class="btn ghost" data-act="reset">Xóa tiến độ</button>
+      <button class="btn ghost" data-act="reset">Xóa tiến độ tập này</button>
     </div>`;
 
   // cập nhật số từ, chữ trên nút và tô các bài trong phạm vi
@@ -595,8 +643,8 @@ function Home(root) {
     const ub = $("#unkbtn", root);
     ub.textContent = unk ? `Ôn từ chưa thuộc (${unk})` : "Đã thuộc hết phạm vi này";
     ub.disabled = !unk;
-    // chỉ tô các bài trong phạm vi khi đã thu hẹp (cả 30 bài thì không cần tô)
-    const full = st.from === 1 && st.to === LESSON_LIST.length;
+    // chỉ tô các bài trong phạm vi khi đã thu hẹp (cả tập thì không cần tô)
+    const full = st.from === LESSON_LIST[0].bai && st.to === LESSON_LIST[LESSON_LIST.length - 1].bai;
     root.querySelectorAll(".lesson").forEach(b => {
       const n = +b.dataset.bai;
       b.classList.toggle("in", !full && n >= st.from && n <= st.to);
@@ -611,6 +659,7 @@ function Home(root) {
       st.to = +to.value;
       if (st.from > st.to) { st.from = st.to; from.value = st.from; }
     } else return;
+    st.ranges[VOL.id] = [st.from, st.to];
     save();
     updateRange();
   };
@@ -621,8 +670,11 @@ function Home(root) {
     const b = e.target.closest("button");
     if (!b || b.disabled) return;
     const act = b.dataset.act;
-    if (b.dataset.bai) {
-      const l = LESSON_LIST[b.dataset.bai - 1];
+    if (act === "books") {
+      sfx("click");
+      show(Books);
+    } else if (b.dataset.bai) {
+      const l = lessonByBai(+b.dataset.bai);
       sfx("click");
       show(r => Mode(r, `Bài ${l.bai} · ${l.ten}`, l.words, `bai${l.bai}`, l.words));
     } else if (act === "unknown" || act === "mix") {
@@ -632,14 +684,15 @@ function Home(root) {
       if (act === "unknown") {
         show(r => Mode(r, `Từ chưa thuộc · ${span}`, ws.filter(w => !isKnown(w)), `unknown${from}-${to}`, ws));
       } else if (from === to) {
-        const l = LESSON_LIST[from - 1];
+        const l = lessonByBai(from);
         show(r => Mode(r, `Bài ${l.bai} · ${l.ten}`, l.words, `bai${l.bai}`, l.words));
       } else {
         show(r => Mode(r, `Trộn ${span}`, ws, `range${from}-${to}`, ws));
       }
     } else if (act === "reset") {
       if (b.dataset.confirm) {
-        store.known.clear();
+        // chỉ xóa tiến độ của tập đang chọn
+        for (const k of [...store.known]) if (k.startsWith(`${VOL.id}|`)) store.known.delete(k);
         save();
         show(Home);
       } else {
@@ -648,13 +701,45 @@ function Home(root) {
         b.classList.add("bad");
         resetTimer = setTimeout(() => {
           delete b.dataset.confirm;
-          b.textContent = "Xóa tiến độ";
+          b.textContent = "Xóa tiến độ tập này";
           b.classList.remove("bad");
         }, 3000);
       }
     }
   };
   return () => clearTimeout(resetTimer);
+}
+
+// ================= chọn sách / tập =================
+function Books(root) {
+  root.innerHTML = `
+    <div class="topbar"><button class="btn ghost" data-act="home">← Trở về</button><div class="t">Chọn sách và tập</div></div>
+    ${BOOKS.map(b => `
+      <h2 class="section book-name">${esc(b.ten)}</h2>
+      <div class="vols">${b.taps.map(t => {
+        const ws = volWords(t), k = ws.filter(isKnown).length, cur = t.id === VOL.id;
+        return `<button class="vol ${cur ? "cur" : ""}" data-vol="${esc(t.id)}">
+          ${cur ? `<span class="pill green">Đang học</span>` : ""}
+          <span class="vol-name">${esc(t.ten)}</span>
+          ${t.goc ? `<span class="vol-goc hz">${esc(t.goc)}</span>` : ""}
+          <span class="muted">${t.lessons.length} bài · ${ws.length} từ</span>
+          <span class="bar"><i style="width:${ws.length ? k / ws.length * 100 : 0}%"></i></span>
+          <span class="muted">${k} từ đã thuộc</span>
+        </button>`;
+      }).join("")}</div>`).join("")}
+    <p class="muted add-note">Muốn học tập khác hoặc sách khác? Gửi file từ vựng (PDF, Excel, ảnh…) để thêm vào app.</p>`;
+  root.onclick = e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.act === "home") return show(Home);
+    if (b.dataset.vol) {
+      sfx("click");
+      useVolume(b.dataset.vol);
+      save();
+      show(Home);
+    }
+  };
+  keyHandler = e => { if (e.key === "Escape") show(Home); };
 }
 
 // ================= chọn chế độ =================
