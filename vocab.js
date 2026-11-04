@@ -1,6 +1,5 @@
 // Từ vựng theo Sách → Tập → Bài.
 // tu:    [chữ Hán, pinyin, nghĩa tiếng Việt, âm Hán Việt]
-// rieng: [chữ Hán, pinyin, nghĩa tiếng Việt]  (danh từ riêng 专有名词)
 // Thêm tập mới: thêm một mục vào "taps" của sách (hoặc thêm sách mới); "id" của mỗi tập không được trùng.
 
 const BOOKS = [
@@ -28,8 +27,7 @@ const BOOKS = [
             ["叫", "jiào", "kêu, gọi", "khiếu"],
             ["什么", "shénme", "gì, cái gì", "thập ma"],
             ["名字", "míngzi", "tên, họ tên", "danh tự"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 2, "ten": "你是哪国人？", "tu": [
             ["同学", "tóngxué", "bạn cùng lớp, bạn học", "đồng học"],
             ["们", "men", "hậu tố chỉ số nhiều ở người", "môn"],
@@ -47,12 +45,7 @@ const BOOKS = [
             ["高兴", "gāoxìng", "vui mừng", "cao hứng"],
             ["也", "yě", "cũng", "dã"],
             ["呢", "ne", "trợ từ", "ni"]
-          ], "rieng": [
-            ["美国", "Měiguó", "nước Mỹ"],
-            ["加拿大", "Jiānádà", "Canada"],
-            ["中国", "Zhōngguó", "Trung Quốc"]
-          ]
-          },
+          ] },
           { "bai": 3, "ten": "那是你的书吗？", "tu": [
             ["那", "nà", "kia, đó", "ná"],
             ["谁", "shéi / shuí", "ai, người nào", "thùy"],
@@ -67,11 +60,7 @@ const BOOKS = [
             ["杂志", "zázhì", "tạp chí", "tạp chí"],
             ["音乐", "yīnyuè", "âm nhạc", "âm nhạc"],
             ["朋友", "péngyou", "bạn bè", "bằng hữu"]
-          ], "rieng": [
-            ["汉日词典", "Hàn-Rì Cídiǎn", "Từ điển Trung-Nhật"],
-            ["日本", "Rìběn", "Nhật Bản"]
-          ]
-          },
+          ] },
           { "bai": 4, "ten": "图书馆在哪儿？", "tu": [
             ["请问", "qǐngwèn", "xin hỏi", "thỉnh vấn"],
             ["图书馆", "túshūguǎn", "thư viện", "đồ thư quán"],
@@ -81,7 +70,7 @@ const BOOKS = [
             ["个", "gè", "cái, chiếc (lượng từ)", "cá"],
             ["学校", "xuéxiào", "trường học", "học hiệu"],
             ["知道", "zhīdào", "biết", "tri đạo"],
-            ["没关系", "méi guānxi", "không sao, không có", "một quan hệ"],
+            ["没关系", "méi guānxi", "không sao, không có gì", "một quan hệ"],
             ["这儿", "zhèr", "ở đây", "giá nhi"],
             ["办公楼", "bàngōnglóu", "tòa nhà văn phòng", "biện công lâu"],
             ["楼", "lóu", "tòa nhà", "lâu"],
@@ -93,8 +82,7 @@ const BOOKS = [
             ["右边", "yòubian", "bên phải", "hữu biên"],
             ["不用谢", "búyòng xiè", "không cần cảm ơn, không có gì", "bất dụng tạ"],
             ["不用", "búyòng", "không cần", "bất dụng"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 5, "ten": "我是北京大学的留学生", "tu": [
             ["专业", "zhuānyè", "chuyên ngành", "chuyên nghiệp"],
             ["国际", "guójì", "quốc tế", "quốc tế"],
@@ -116,11 +104,7 @@ const BOOKS = [
             ["旁边", "pángbiān", "bên cạnh", "bàng biên"],
             ["西边", "xībian", "phía tây", "tây biên"],
             ["对", "duì", "đúng", "đối"]
-          ], "rieng": [
-            ["北京大学", "Běijīng Dàxué", "Đại học Bắc Kinh"],
-            ["清华大学", "Qīnghuá Dàxué", "Đại học Thanh Hoa"]
-          ]
-          },
+          ] },
           { "bai": 6, "ten": "现在几点？", "tu": [
             ["大学", "dàxué", "trường đại học", "đại học"],
             ["早上", "zǎoshang", "buổi sáng", "tảo thượng"],
@@ -137,7 +121,7 @@ const BOOKS = [
             ["下课", "xià kè", "tan học", "hạ khóa"],
             ["十", "shí", "số 10", "thập"],
             ["半", "bàn", "một nửa, rưỡi", "bán"],
-            ["太…了", "tài... le", "... quá,... lắm", "thái... liễu"],
+            ["太...了", "tài... le", "... quá, ... lắm", "thái... liễu"],
             ["早", "zǎo", "sớm", "tảo"],
             ["讲座", "jiǎngzuò", "buổi tọa đàm", "giảng tòa"],
             ["开始", "kāishǐ", "bắt đầu", "khai thủy"],
@@ -149,14 +133,13 @@ const BOOKS = [
             ["六", "liù", "số 6", "lục"],
             ["一会儿", "yíhuìr", "một lát", "nhất hội nhi"],
             ["见", "jiàn", "gặp, thấy", "kiến"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 7, "ten": "明天你有课吗？", "tu": [
             ["明天", "míngtiān", "ngày mai", "minh thiên"],
             ["课", "kè", "tiết học, bài học", "khóa"],
             ["上午", "shàngwǔ", "buổi sáng", "thượng ngọ"],
             ["下午", "xiàwǔ", "buổi chiều", "hạ ngọ"],
-            ["没（有）", "méi(yǒu)", "không có", "một (hữu)"],
+            ["没(有)", "méi(yǒu)", "không có", "một (hữu)"],
             ["自行车", "zìxíngchē", "xe đạp", "tự hành xa"],
             ["吧", "ba", "nhé, đi, thôi...", "ba"],
             ["事", "shì", "sự việc", "sự"],
@@ -179,8 +162,7 @@ const BOOKS = [
             ["听说", "tīngshuō", "nghe nói", "thính thuyết"],
             ["有名", "yǒumíng", "nổi tiếng", "hữu danh"],
             ["当然", "dāngrán", "đương nhiên, tất nhiên", "đương nhiên"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 8, "ten": "你的电话号码是多少？", "tu": [
             ["周末", "zhōumò", "cuối tuần", "chu mạt"],
             ["啊", "a", "a, à, ha... (trợ từ tình thái)", "a"],
@@ -209,8 +191,7 @@ const BOOKS = [
             ["打", "dǎ", "gọi (điện thoại)", "đả"],
             ["电话", "diànhuà", "điện thoại", "điện thoại"],
             ["等", "děng", "đợi", "đẳng"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 9, "ten": "多少钱一瓶？", "tu": [
             ["买", "mǎi", "mua", "mãi"],
             ["啤酒", "píjiǔ", "bia", "tì tửu"],
@@ -236,8 +217,7 @@ const BOOKS = [
             ["本", "běn", "quyển (lượng từ của sách, vở)", "bản"],
             ["小", "xiǎo", "nhỏ, bé", "tiểu"],
             ["零钱", "língqián", "tiền lẻ", "linh tiền"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 10, "ten": "你家有几口人？", "tu": [
             ["照片", "zhàopiàn", "ảnh, tấm ảnh", "chiếu phiến"],
             ["家", "jiā", "nhà, gia đình", "gia"],
@@ -259,8 +239,7 @@ const BOOKS = [
             ["条", "tiáo", "con... (lượng từ chỉ vật dài)", "điều"],
             ["狗", "gǒu", "con chó", "cẩu"],
             ["这样", "zhèyàng", "như vậy, như thế", "giá dạng"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 11, "ten": "北京的冬天比较冷", "tu": [
             ["天气", "tiānqì", "thời tiết", "thiên khí"],
             ["怎么样", "zěnmeyàng", "như thế nào", "chẩm ma dạng"],
@@ -288,10 +267,7 @@ const BOOKS = [
             ["爱好", "àihào", "yêu thích, sở thích", "ái hiếu"],
             ["游泳", "yóuyǒng", "bơi lội", "du vịnh"],
             ["春天", "chūntiān", "mùa xuân", "xuân thiên"]
-          ], "rieng": [
-            ["北京", "Běijīng", "Bắc Kinh (thủ đô của Trung Quốc)"]
-          ]
-          },
+          ] },
           { "bai": 12, "ten": "你在干什么？", "tu": [
             ["喂", "wèi", "alo (dùng khi nói điện thoại)", "uy"],
             ["哦", "ó", "ồ, à", "ô"],
@@ -302,7 +278,7 @@ const BOOKS = [
             ["每", "měi", "mỗi, từng", "mỗi"],
             ["天", "tiān", "ngày", "thiên"],
             ["星期三", "xīngqīsān", "thứ tư", "tinh kỳ tam"],
-            ["从到…", "cóng... dào...", "từ... đến...", "tòng... đáo"],
+            ["从...到...", "cóng... dào...", "từ... đến...", "tòng... đáo"],
             ["中午", "zhōngwǔ", "buổi trưa", "trung ngọ"],
             ["节", "jié", "tiết học (lượng từ)", "tiết"],
             ["听写", "tīngxiě", "nghe và viết", "thính tả"],
@@ -317,8 +293,7 @@ const BOOKS = [
             ["唱", "chàng", "hát, ca hát", "xướng"],
             ["歌", "gē", "bài hát", "ca"],
             ["回", "huí", "trở về", "hồi"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 13, "ten": "我去图书馆还书", "tu": [
             ["还", "huán", "trả, trả lại", "hoàn"],
             ["先", "xiān", "đầu tiên, trước tiên", "tiên"],
@@ -345,8 +320,7 @@ const BOOKS = [
             ["衣服", "yīfu", "quần áo", "y phục"],
             ["开门", "kāi mén", "mở cửa", "khai môn"],
             ["开", "kāi", "mở", "khai"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 14, "ten": "我喜欢浅颜色的", "tu": [
             ["件", "jiàn", "cái, chiếc (lượng từ của áo)", "kiện"],
             ["白", "bái", "màu trắng", "bạch"],
@@ -358,7 +332,7 @@ const BOOKS = [
             ["蓝", "lán", "màu xanh lam", "lam"],
             ["颜色", "yánsè", "màu sắc", "nhan sắc"],
             ["有点儿", "yǒudiǎnr", "hơi, chút", "hữu điểm nhi"],
-            ["深", "shēn", "thẩm, đậm", "thâm"],
+            ["深", "shēn", "thẫm, đậm", "thâm"],
             ["浅", "qiǎn", "nhạt", "thiển"],
             ["黄", "huáng", "màu vàng", "hoàng"],
             ["漂亮", "piàoliang", "đẹp, xinh đẹp", "phiêu lượng"],
@@ -368,13 +342,12 @@ const BOOKS = [
             ["辆", "liàng", "chiếc, cái (lượng từ của xe cộ)", "lượng"],
             ["旧", "jiù", "cũ", "cựu"],
             ["便宜", "piányi", "rẻ", "tiện nghi"],
-            ["丢", "diū", "mất, thất lạc", "du"],
+            ["丢", "diū", "mất, thất lạc", "đu"],
             ["别的", "bié de", "khác", "biệt đích"],
             ["黑", "hēi", "màu đen", "hắc"],
             ["灰", "huī", "màu xám, màu tro", "khôi"],
             ["绿", "lǜ", "màu xanh lá", "lục"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 15, "ten": "明天是我朋友的生日", "tu": [
             ["晚饭", "wǎnfàn", "bữa tối", "vãn phạn"],
             ["以后", "yǐhòu", "sau, sau khi", "dĩ hậu"],
@@ -399,8 +372,7 @@ const BOOKS = [
             ["束", "shù", "bó (lượng từ của hoa)", "thúc"],
             ["花", "huā", "bông hoa", "hoa"],
             ["主意", "zhǔyi", "chú ý, ý kiến", "chủ ý"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 16, "ten": "周末你干什么？", "tu": [
             ["又", "yòu", "lại", "hựu"],
             ["了", "le", "trợ từ", "liễu"],
@@ -429,8 +401,7 @@ const BOOKS = [
             ["山", "shān", "núi", "sơn"],
             ["听", "tīng", "nghe", "thính"],
             ["音乐会", "yīnyuèhuì", "buổi hòa nhạc", "âm nhạc hội"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 17, "ten": "做客（一）", "tu": [
             ["做客", "zuò kè", "làm khách", "tố khách"],
             ["请进", "qǐng jìn", "mời vào", "thỉnh tiến"],
@@ -458,8 +429,7 @@ const BOOKS = [
             ["吃", "chī", "ăn", "ngật"],
             ["会", "huì", "biết", "hội"],
             ["试", "shì", "thử", "thức"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 18, "ten": "做客（二）", "tu": [
             ["好吃", "hǎochī", "ngon", "hảo ngật"],
             ["味道", "wèidao", "mùi vị", "vị đạo"],
@@ -471,7 +441,7 @@ const BOOKS = [
             ["南方", "nánfāng", "phương nam", "nam phương"],
             ["米饭", "mǐfàn", "cơm", "mễ phạn"],
             ["面食", "miànshí", "thức ăn làm từ bột mì", "diện thực"],
-            ["对来说", "duì... lái shuō", "đối... mà nói", "đối... lai thuyết"],
+            ["对...来说", "duì... lái shuō", "đối... mà nói", "đối... lai thuyết"],
             ["重要", "zhòngyào", "quan trọng", "trọng yếu"],
             ["种", "zhǒng", "loại, chủng loại", "chủng"],
             ["食品", "shípǐn", "thực phẩm", "thực phẩm"],
@@ -490,8 +460,7 @@ const BOOKS = [
             ["大家", "dàjiā", "mọi người", "đại gia"],
             ["热闹", "rènao", "náo nhiệt, ồn ào", "nhiệt náo"],
             ["有意思", "yǒu yìsi", "thú vị, có ý nghĩa", "hữu ý tứ"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 19, "ten": "现在习惯了", "tu": [
             ["多", "duō", "nhiều", "đa"],
             ["长", "cháng", "dài", "trường"],
@@ -513,9 +482,8 @@ const BOOKS = [
             ["大", "dà", "lớn, lớn tuổi", "đại"],
             ["年纪", "niánjì", "tuổi tác", "niên kỷ"],
             ["大概", "dàgài", "khoảng", "đại khái"],
-            ["岁", "suì", "tuổi", "tuể"]
-          ], "rieng": []
-          },
+            ["岁", "suì", "tuổi", "tuế"]
+          ] },
           { "bai": 20, "ten": "看病人", "tu": [
             ["看", "kàn", "nhìn, xem, thăm", "khán"],
             ["别客气", "bié kèqi", "đừng khách sáo", "biệt khách khí"],
@@ -544,10 +512,7 @@ const BOOKS = [
             ["病人", "bìngrén", "bệnh nhân", "bệnh nhân"],
             ["身体", "shēntǐ", "sức khỏe, thân thể", "thân thể"],
             ["药", "yào", "thuốc", "dược"]
-          ], "rieng": [
-            ["麦当劳", "Màidāngláo", "McDonald's (thương hiệu đồ ăn nhanh)"]
-          ]
-          },
+          ] },
           { "bai": 21, "ten": "我喝了半斤白酒", "tu": [
             ["生气", "shēng qì", "bực, tức giận", "sinh khí"],
             ["好像", "hǎoxiàng", "hình như", "hảo tượng"],
@@ -574,8 +539,7 @@ const BOOKS = [
             ["杯", "bēi", "cốc, chén", "bôi"],
             ["困", "kùn", "buồn ngủ", "khốn"],
             ["继续", "jìxù", "tiếp tục", "kế tục"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 22, "ten": "他感冒了", "tu": [
             ["能", "néng", "có thể", "năng"],
             ["病", "bìng", "bệnh, ốm", "bệnh"],
@@ -601,8 +565,7 @@ const BOOKS = [
             ["批准", "pīzhǔn", "phê duyệt", "phê chuẩn"],
             ["月", "yuè", "tháng", "nguyệt"],
             ["日", "rì", "ngày", "nhật"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 23, "ten": "你学了多长时间汉语", "tu": [
             ["迟到", "chídào", "đến muộn", "trì đáo"],
             ["堵车", "dǔ chē", "kẹt xe, tắc đường", "đổ xa"],
@@ -629,8 +592,7 @@ const BOOKS = [
             ["马上", "mǎshàng", "lập tức, ngay tức khắc", "mã thượng"],
             ["下", "xià", "sau, tiếp", "hạ"],
             ["学期", "xuéqī", "học kỳ", "học kỳ"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 24, "ten": "你吃了早饭来找我", "tu": [
             ["打", "dǎ", "đánh, chơi", "đả"],
             ["球", "qiú", "quả bóng", "cầu"],
@@ -657,8 +619,7 @@ const BOOKS = [
             ["门口", "ménkǒu", "cổng, lối vào", "môn khẩu"],
             ["见面", "jiàn miàn", "gặp mặt", "kiến diện"],
             ["电脑", "diànnǎo", "máy tính", "điện não"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 25, "ten": "你该多锻炼锻炼了", "tu": [
             ["该", "gāi", "nên, cần phải, cần", "cai"],
             ["晚安", "wǎn'ān", "chúc ngủ ngon", "vãn an"],
@@ -685,8 +646,7 @@ const BOOKS = [
             ["棒", "bàng", "khỏe, tuyệt, giỏi", "bổng"],
             ["跑", "pǎo", "chạy", "bão"],
             ["散步", "sàn bù", "đi dạo", "tản bộ"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 26, "ten": "快考试了", "tu": [
             ["接", "jiē", "đón, nhận", "tiếp"],
             ["电", "diàn", "điện", "điện"],
@@ -714,11 +674,7 @@ const BOOKS = [
             ["再", "zài", "lại (sau đó)", "tái"],
             ["刚才", "gāngcái", "vừa mới, ban nãy", "cương tài"],
             ["排队", "pái duì", "xếp hàng", "bài đội"]
-          ], "rieng": [
-            ["东北", "Dōngběi", "Đông Bắc (Trung Quốc)"],
-            ["圣诞节", "Shèngdàn Jié", "Lễ Giáng Sinh"]
-          ]
-          },
+          ] },
           { "bai": 27, "ten": "爸爸妈妈让我回家", "tu": [
             ["计划", "jìhuà", "kế hoạch", "kế hoạch"],
             ["待", "dāi", "ở lại, lưu lại", "đãi"],
@@ -743,11 +699,7 @@ const BOOKS = [
             ["应该", "yīnggāi", "nên", "ứng cai"],
             ["想念", "xiǎngniàn", "nhớ", "tưởng niệm"],
             ["趟", "tàng", "chuyến (lượng từ)", "thảng"]
-          ], "rieng": [
-            ["哈尔滨", "Hā'ērbīn", "Cáp Nhĩ Tân"],
-            ["春节", "Chūnjié", "Tết Nguyên Đán"]
-          ]
-          },
+          ] },
           { "bai": 28, "ten": "考得怎么样", "tu": [
             ["星期", "xīngqī", "tuần lễ", "tinh kỳ"],
             ["门", "mén", "môn học (lượng từ)", "môn"],
@@ -779,10 +731,7 @@ const BOOKS = [
             ["帮助", "bāngzhù", "giúp đỡ", "bang trợ"],
             ["担心", "dān xīn", "lo lắng", "đảm tâm"],
             ["解决", "jiějué", "giải quyết", "giải quyết"]
-          ], "rieng": [
-            ["欧美", "Ōu-Měi", "Châu Âu và Châu Mỹ"]
-          ]
-          },
+          ] },
           { "bai": 29, "ten": "我们已经买好票了", "tu": [
             ["全部", "quánbù", "toàn bộ, tất cả", "toàn bộ"],
             ["终于", "zhōngyú", "cuối cùng", "chung vu"],
@@ -806,8 +755,7 @@ const BOOKS = [
             ["表演", "biǎoyǎn", "biểu diễn", "biểu diễn"],
             ["节目", "jiémù", "tiết mục", "tiết mục"],
             ["这个", "zhège", "cái này, điều này", "giá cá"]
-          ], "rieng": []
-          },
+          ] },
           { "bai": 30, "ten": "我要参加联欢会", "tu": [
             ["行李", "xíngli", "hành lý", "hành lý"],
             ["穿", "chuān", "mặc", "xuyên"],
@@ -820,7 +768,7 @@ const BOOKS = [
             ["首", "shǒu", "bài (lượng từ)", "thủ"],
             ["流行", "liúxíng", "thịnh hành", "lưu hành"],
             ["歌曲", "gēqǔ", "bài hát", "ca khúc"],
-            ["民歌", "míngé", "dân ca", "dân ca"],
+            ["民歌", "míngē", "dân ca", "dân ca"],
             ["好听", "hǎotīng", "nghe hay, hay", "hảo thính"],
             ["发音", "fāyīn", "phát âm", "phát âm"],
             ["懂", "dǒng", "hiểu", "đổng"],
@@ -831,8 +779,7 @@ const BOOKS = [
             ["下载", "xiàzài", "tải xuống", "hạ tải"],
             ["次", "cì", "lần, lượt (lượng từ)", "thứ"],
             ["怕", "pà", "sợ, e ngại", "phạ"]
-          ], "rieng": []
-          }
+          ] }
         ]
       }
     ]
