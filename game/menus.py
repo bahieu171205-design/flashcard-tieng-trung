@@ -249,16 +249,13 @@ class ModeScene(Scene):
         super().__init__(app)
         self.title, self.all, self.scope, self.pool = title, words, scope, pool
         self.btn_back = Button((40, 28, 130, 42), "← Trở về", "ghost", 16)
-        self.has_rieng = any(w.rieng for w in words)
-        self.t_rieng = Toggle((40, 176, 170, 36), "Gồm tên riêng", app.settings["rieng"])
-        dx = 222 if self.has_rieng else 40
-        self.t_dir = Toggle((dx, 176, 220, 36), "", app.settings["reverse"])
+        self.t_dir = Toggle((40, 176, 220, 36), "", app.settings["reverse"])
         cw = (W - 80 - 3 * 20) // 4
         self.cards = [(m, pygame.Rect(40 + i * (cw + 20), 244, cw, 330)) for i, m in enumerate(MODES)]
         self.card_press = [PressTracker() for _ in self.cards]
 
     def words(self):
-        return [w for w in self.all if self.app.settings["rieng"] or not w.rieng]
+        return self.all
 
     def start(self, mode):
         from .flashcard import FlashcardScene
@@ -279,8 +276,6 @@ class ModeScene(Scene):
     def handle(self, e):
         if self.btn_back.clicked(e) or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
             self.app.go(HomeScene(self.app))
-        elif self.has_rieng and self.t_rieng.clicked(e):
-            self.app.settings["rieng"] = self.t_rieng.on = not self.t_rieng.on
         elif self.t_dir.clicked(e):
             self.app.settings["reverse"] = self.t_dir.on = not self.t_dir.on
         elif e.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP) and self.words():
@@ -295,8 +290,6 @@ class ModeScene(Scene):
         draw_text(s, fit(self.title, 30, W - 80, True), 30, C["ink"], (40, 90), bold=True)
         k = sum(app.progress.is_known(w) for w in ws)
         draw_text(s, f"{len(ws)} từ · {k} đã thuộc · {len(ws) - k} chưa thuộc", 16, C["muted"], (40, 136))
-        if self.has_rieng:
-            self.t_rieng.draw(s)
         self.t_dir.label = "Hỏi: Việt → Hán" if self.t_dir.on else "Hỏi: Hán → Việt"
         self.t_dir.draw(s)
 

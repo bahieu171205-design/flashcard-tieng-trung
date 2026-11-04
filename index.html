@@ -460,7 +460,7 @@ const store = (() => {
   let d = {};
   try { d = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { d = {}; }
   const old = d.settings || {};
-  const st = Object.assign({ rieng: true, reverse: false, vol: VOLUMES[0].id, ranges: {} }, old);
+  const st = Object.assign({ reverse: false, vol: VOLUMES[0].id, ranges: {} }, old);
   // chuyển dữ liệu kiểu cũ (chỉ có 1 tập) sang tập OLD_VOL
   if (old.from && !old.ranges) st.ranges[OLD_VOL] = [old.from, old.to];
   const known = new Set((d.known || []).map(k => /^\d+\|/.test(k) ? `${OLD_VOL}|${k}` : k));
@@ -653,7 +653,7 @@ const pyHtml = py => toneRuns(py).map(([s, t]) => t === null ? esc(s) : `<span c
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
-const APP_VERSION = 8;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
+const APP_VERSION = 9;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
 let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {
@@ -841,8 +841,7 @@ const MODES = [
 
 function Mode(root, title, all, scope, pool) {
   const st = store.settings;
-  const words = () => all.filter(w => st.rieng || !w.rieng);
-  const hasRieng = all.some(w => w.rieng);
+  const words = () => all;
   const back = () => show(r => Mode(r, title, all, scope, pool));
 
   function render() {
@@ -852,7 +851,6 @@ function Mode(root, title, all, scope, pool) {
       <h1 class="page-title">${esc(title)}</h1>
       <div class="muted">${ws.length} từ · ${k} đã thuộc · ${ws.length - k} chưa thuộc</div>
       <div class="toggles">
-        ${hasRieng ? `<button class="chip" data-act="rieng" aria-pressed="${st.rieng}">Gồm tên riêng</button>` : ""}
         <button class="chip" data-act="dir" aria-pressed="${st.reverse}">${st.reverse ? "Hỏi: Việt → Hán" : "Hỏi: Hán → Việt"}</button>
       </div>
       <div class="modes">${MODES.map(([id, ico, name, desc, col]) => {
@@ -872,7 +870,6 @@ function Mode(root, title, all, scope, pool) {
     if (!b || b.disabled) return;
     const act = b.dataset.act, mode = b.dataset.mode;
     if (act === "home") return show(Home);
-    if (act === "rieng") { st.rieng = !st.rieng; save(); return render(); }
     if (act === "dir") { st.reverse = !st.reverse; save(); return render(); }
     if (!mode) return;
     sfx("click");

@@ -16,7 +16,7 @@ class App:
         self.progress = Progress()
         self.use_volume(self.progress.vol)
         self.audio = Audio()
-        self.settings = {"rieng": True, "reverse": False}
+        self.settings = {"reverse": False}
         self.scene = None
         self.running = True
 
