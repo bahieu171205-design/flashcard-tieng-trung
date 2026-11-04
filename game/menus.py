@@ -369,10 +369,10 @@ class ListScene(Scene):
             y = body.y + i * self.ROW - self.scroll
             row = pygame.Rect(body.x, y, body.w, self.ROW)
             if row.collidepoint(mouse) and body.collidepoint(mouse):
-                pygame.draw.rect(s, (250, 245, 236), row)
+                pygame.draw.rect(s, (240, 244, 250), row)
             cy = y + self.ROW // 2
             draw_text(s, fit(w.hz, 28, 220), 28, C["ink"], (a.x + 18, cy), "midleft")
-            draw_text(s, fit(w.py, 18, 205), 18, C["accent"], (a.x + 250, cy), "midleft")
+            ui.draw_pinyin(s, w.py, 18, (a.x + 250, cy), "midleft")
             draw_text(s, fit(w.hv or "tên riêng", 16, 180), 16, C["muted"], (a.x + 470, cy), "midleft")
             draw_text(s, fit(w.vi, 17, a.w - 660 - 60), 17, C["ink"], (a.x + 660, cy), "midleft")
             if self.app.progress.is_known(w):

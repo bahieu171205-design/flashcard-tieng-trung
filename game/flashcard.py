@@ -177,7 +177,7 @@ class FlashcardScene(Scene):
             draw_text(s, "Bấm vào thẻ hoặc nhấn Space để lật", 14, C["muted"], (cx, CARD.h - 20), "midbottom")
         else:
             items = [ui.text(w.hz, ui.fit_size(w.hz, 96, CARD.w - 160, 40), C["ink"]),
-                     ui.text(w.py, 32, C["accent"], True)]
+                     ui.pinyin(w.py, 32, True)]
             items += wrapped_lines(w.vi, 27, C["ink"], CARD.w - 140, max_lines=2)
             if w.hv:
                 items.append(ui.text(f"Hán Việt: {w.hv}", 17, C["muted"]))
@@ -247,6 +247,6 @@ class FlashcardScene(Scene):
         draw_text(s, msg, 19, C["muted"], (W // 2, panel.y + 110), "center")
         if bad:
             chips = "   ".join(f"{w.hz}" for w in self.wrong[:12]) + ("  …" if bad > 12 else "")
-            draw_text(s, ui.fit(chips, 26, panel.w - 80), 26, C["accent"], (W // 2, panel.y + 170), "center")
+            draw_text(s, ui.fit(chips, 26, panel.w - 80), 26, C["bad"], (W // 2, panel.y + 170), "center")
         for b, _ in self.end_btns:
             b.draw(s)

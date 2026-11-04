@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Flashcard Tiếng Trung</title>
-<meta name="theme-color" content="#f6f1e7">
+<meta name="theme-color" content="#f3f6fa">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -13,21 +13,30 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Flashcard 中文">
 <style>
+  /* màu lấy từ file PDF từ vựng Boya: navy #1F3A5F và 5 màu thanh điệu */
   :root {
-    --bg: #f6f1e7;
-    --surface: #fffdf8;
-    --surface-2: #faf6ee;
-    --ink: #2a2420;
-    --muted: #7a6f66;
-    --line: #e4dbcc;
-    --grid: #efe8da;
-    --shadow: 0 2px 0 #e6dccb, 0 8px 22px rgba(80, 55, 30, .07);
-    --accent: #b8322a;
-    --accent-soft: #f6e1dd;
-    --good: #2f7d4f;
-    --good-soft: #dcefe2;
-    --gold: #a8771a;
-    --gold-soft: #faeecd;
+    --bg: #f3f6fa;
+    --surface: #ffffff;
+    --surface-2: #f7f9fc;
+    --ink: #1f2430;
+    --muted: #55657a;
+    --line: #dfe6ef;
+    --grid: #e8edf4;
+    --shadow: 0 2px 0 #dde4ee, 0 8px 22px rgba(31, 58, 95, .08);
+    --accent: #1f3a5f;
+    --accent-soft: #e3eaf4;
+    --primary: #1f3a5f;
+    --bad: #d62839;
+    --bad-soft: #fbe3e5;
+    --good: #16803c;
+    --good-soft: #dcf1e3;
+    --gold: #b8730a;
+    --gold-soft: #fcefd6;
+    --t1: #d62839;
+    --t2: #b45309;
+    --t3: #16803c;
+    --t4: #2b5fd9;
+    --t0: #6b6b6b;
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
     --hz: "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
     /* chuyển động: phản hồi nhấn 100ms, đổi trạng thái 200ms, chuyển cảnh 300ms */
@@ -42,20 +51,28 @@
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1b1816;
-      --surface: #25211e;
-      --surface-2: #2c2723;
-      --ink: #f1ebe3;
-      --muted: #a89c90;
-      --line: #3a342f;
-      --grid: #221f1c;
-      --shadow: 0 2px 0 #14110f, 0 8px 22px rgba(0, 0, 0, .3);
-      --accent: #e5675c;
-      --accent-soft: #3d2522;
-      --good: #6cc391;
-      --good-soft: #1f3528;
-      --gold: #e0b252;
-      --gold-soft: #3a2f17;
+      --bg: #121821;
+      --surface: #1a2230;
+      --surface-2: #212b3a;
+      --ink: #e8eef6;
+      --muted: #9aa9bc;
+      --line: #2c3747;
+      --grid: #18202b;
+      --shadow: 0 2px 0 #0c1118, 0 8px 22px rgba(0, 0, 0, .35);
+      --accent: #8fb3e6;
+      --accent-soft: #233552;
+      --primary: #4a72b0;
+      --bad: #ff6b78;
+      --bad-soft: #3e1e25;
+      --good: #4cc37a;
+      --good-soft: #17301f;
+      --gold: #e8b54a;
+      --gold-soft: #3a2e15;
+      --t1: #ff6b78;
+      --t2: #f5a524;
+      --t3: #4cc37a;
+      --t4: #7ba2ff;
+      --t0: #9a9a9a;
       color-scheme: dark;
     }
   }
@@ -113,9 +130,9 @@
     box-shadow: 0 2px 0 var(--line);
     user-select: none; -webkit-user-select: none;
   }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 70%, black); }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 2px 0 color-mix(in srgb, var(--primary) 70%, black); }
   .btn.good { background: var(--good-soft); border-color: transparent; color: var(--good); }
-  .btn.bad { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .btn.bad { background: var(--bad-soft); border-color: transparent; color: var(--bad); }
   .btn.ghost { background: transparent; }
   .chip {
     min-height: 44px; padding: 6px 16px; border-radius: 99px; border: 1px solid var(--line);
@@ -130,7 +147,7 @@
   .home-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
   .brand { display: flex; align-items: center; gap: 14px; }
   .seal {
-    width: 56px; height: 56px; border-radius: 14px; background: var(--accent); color: #fff;
+    width: 56px; height: 56px; border-radius: 14px; background: var(--primary); color: #fff;
     display: grid; place-items: center; font-size: 32px; font-weight: 700; flex: none;
   }
   h1 { font-size: 26px; margin: 0; letter-spacing: -.01em; line-height: 1.2; }
@@ -254,7 +271,7 @@
   .drag.out-right { transform: translateX(60%) rotate(8deg); }
   .drag.out-up { transform: translateY(-30%) scale(.9); }
   .drag.out-up.good .face { border-color: var(--good); box-shadow: 0 0 0 4px var(--good-soft); }
-  .drag.out-up.bad .face { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .drag.out-up.bad .face { border-color: var(--bad); box-shadow: 0 0 0 4px var(--bad-soft); }
   .card {
     position: relative; height: clamp(300px, 50vh, 440px); cursor: pointer;
     transform-style: preserve-3d; transition: transform 380ms var(--ease);
@@ -272,10 +289,11 @@
   .face .known { position: absolute; top: 12px; right: 14px; font-size: 13px; font-weight: 700; color: var(--good); background: var(--good-soft); padding: 3px 12px; border-radius: 99px; }
   .face .hint { position: absolute; bottom: 14px; font-size: 13px; color: var(--muted); }
   .big { line-height: 1.15; word-break: break-all; }
-  .py { color: var(--accent); font-weight: 700; font-size: clamp(22px, 4vw, 32px); }
+  .py { color: var(--ink); font-weight: 700; font-size: clamp(22px, 4vw, 32px); }
   .vi { font-size: clamp(20px, 3.4vw, 27px); }
   .vi-front { font-size: clamp(26px, 5vw, 40px); font-weight: 700; }
   .hv { color: var(--muted); font-size: 16px; }
+  .t1 { color: var(--t1); } .t2 { color: var(--t2); } .t3 { color: var(--t3); } .t4 { color: var(--t4); } .t0 { color: var(--t0); }
   .controls { max-width: 820px; margin: 0 auto; display: grid; grid-template-columns: 64px 1fr 1fr 64px; gap: 12px; }
   .controls .btn { min-height: 60px; font-size: 18px; }
   .keys { text-align: center; color: var(--muted); font-size: 13px; margin-top: 14px; }
@@ -286,7 +304,7 @@
   }
   .panel h2 { margin: 0 0 6px; font-size: 30px; }
   .panel .msg { color: var(--muted); margin: 0 0 16px; }
-  .panel .wrongs { font-size: 26px; color: var(--accent); margin: 8px 0 22px; line-height: 1.6; }
+  .panel .wrongs { font-size: 26px; color: var(--bad); margin: 8px 0 22px; line-height: 1.6; }
   .panel .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 
   /* ---------- thanh trên khi chơi ---------- */
@@ -304,7 +322,7 @@
   .pill.green { background: var(--good-soft); color: var(--good); }
   .hearts { display: flex; gap: 4px; }
   .hearts svg { width: 28px; height: 28px; fill: var(--line); transition: fill .2s ease; }
-  .hearts .on svg { fill: var(--accent); }
+  .hearts .on svg { fill: var(--bad); }
 
   /* ---------- trắc nghiệm ---------- */
   .qcard {
@@ -330,7 +348,7 @@
   .opt .hzopt { font-size: 40px; font-weight: 400; }
   .opt .what { font-size: 13px; font-weight: 500; }
   .opt.right { background: var(--good-soft); border-color: var(--good); color: var(--good); }
-  .opt.wrong { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
   .opt.dim { color: var(--muted); opacity: .7; }
   /* chọn đúng: nảy nhẹ; chọn sai: đáp án đó rung, đáp án đúng nhấp nháy để mắt tìm tới */
   .opt.right.picked { animation: pop var(--slow) var(--spring); }
@@ -338,7 +356,7 @@
   .opt.right.reveal { animation: pulse 600ms var(--ease) 2; }
   .score b.bump, .pill.bump { animation: bump var(--normal) var(--spring); }
   .hearts .lost svg { animation: heart-lost 450ms var(--ease); }
-  @keyframes heart-lost { 30% { transform: scale(1.35); fill: var(--accent); } 100% { transform: scale(1); } }
+  @keyframes heart-lost { 30% { transform: scale(1.35); fill: var(--bad); } 100% { transform: scale(1); } }
 
   /* ---------- mưa chữ ---------- */
   .field {
@@ -351,7 +369,7 @@
     background: var(--surface); border: 2px solid var(--line); border-radius: 14px; box-shadow: 0 4px 0 var(--line);
     will-change: transform; white-space: nowrap; touch-action: none; user-select: none; -webkit-user-select: none;
   }
-  .tile.bad { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .tile.bad { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
   .tile.bad > span { display: inline-block; animation: shake 400ms var(--ease); }
   .tile.press { border-color: var(--accent); }
   .tile.hit {
@@ -388,7 +406,7 @@
   .result .stats3 span { font-size: 13px; color: var(--muted); }
   .result .wl { text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; margin: 6px 0 24px; }
   .result .wl div { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-  .result .wl .h { font-size: 22px; color: var(--accent); flex: none; }
+  .result .wl .h { font-size: 22px; color: var(--bad); flex: none; }
   .result .wl .p { color: var(--muted); flex: none; }
   .result .wl .v { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .result h4 { text-align: left; margin: 0 0 6px; font-size: 16px; }
@@ -400,7 +418,7 @@
   th { font-size: 13px; color: var(--muted); font-weight: 600; }
   tr:last-child td { border-bottom: 0; }
   td.h { font-size: 26px; white-space: nowrap; }
-  td.p { color: var(--accent); white-space: nowrap; }
+  td.p { white-space: nowrap; }
   td.v2 { color: var(--muted); font-style: italic; }
   td.ok { color: var(--good); font-weight: 700; }
 
@@ -420,6 +438,7 @@
 </head>
 <body>
 <main id="app"></main>
+<script src="syllables.js"></script>
 <script src="vocab.js"></script>
 <script>
 "use strict";
@@ -561,10 +580,80 @@ function toast(text) {
   el.addEventListener("animationend", () => el.remove());
 }
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+// ---- tô màu pinyin theo thanh điệu từng âm tiết (giống sách) ----
+// Tách pinyin viết liền ("xuésheng") thành âm tiết: chọn cách tách ít âm tiết nhất,
+// mỗi âm tiết hợp lệ (PINYIN_SYLLABLES), có tối đa một dấu thanh và dấu nằm đúng vị trí.
+const SYL = new Set(PINYIN_SYLLABLES);
+const MARK_TONE = { "̄": 1, "́": 2, "̌": 3, "̀": 4 };
+function plainLetter(ch) {
+  let tone = 0, out = "";
+  for (const c of ch.normalize("NFD")) {
+    if (MARK_TONE[c]) tone = MARK_TONE[c]; else out += c;
+  }
+  const base = out.normalize("NFC").toLowerCase();
+  return [base === "v" ? "ü" : base, tone];
+}
+function markIndex(s) {
+  for (const v of "ae") if (s.includes(v)) return s.indexOf(v);
+  if (s.includes("ou")) return s.indexOf("o");
+  let k = -1;
+  [...s].forEach((c, i) => { if ("iouü".includes(c)) k = i; });
+  return k;
+}
+const splitCache = new Map();
+function splitWord(word) {
+  if (splitCache.has(word)) return splitCache.get(word);
+  const chars = [...word], n = chars.length;
+  const pairs = chars.map(plainLetter), base = pairs.map(p => p[0]), tones = pairs.map(p => p[1]);
+  const valid = (i, j) => {
+    let s = base.slice(i, j).join("");
+    if (!SYL.has(s)) {
+      if (!(s.endsWith("r") && s.length > 1 && SYL.has(s.slice(0, -1)))) return false;  // 儿 hóa: nǎr, wánr…
+      s = s.slice(0, -1);
+    }
+    const marked = [];
+    for (let k = i; k < j; k++) if (tones[k]) marked.push(k);
+    if (marked.length > 1) return false;
+    return !marked.length || marked[0] - i === markIndex(s);
+  };
+  const best = new Array(n + 1).fill(null);  // best[i] = [số âm tiết, vị trí cắt] cho phần từ i
+  best[n] = [0, n];
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = n; j > i; j--) {
+      if (best[j] && valid(i, j) && (!best[i] || best[j][0] + 1 < best[i][0])) best[i] = [best[j][0] + 1, j];
+    }
+  }
+  let out = null;
+  if (best[0]) {
+    out = [];
+    for (let i = 0; i < n; i = best[i][1]) {
+      const j = best[i][1];
+      out.push([chars.slice(i, j).join(""), Math.max(...tones.slice(i, j))]);
+    }
+  }
+  splitCache.set(word, out);
+  return out;
+}
+// [[đoạn chữ, thanh 0-4 hoặc null nếu không phải pinyin]]
+function toneRuns(py) {
+  py = py.normalize("NFC");
+  const runs = [];
+  let pos = 0;
+  for (const m of py.matchAll(/[A-Za-zÀ-ɏ̀-ͯ]+/g)) {
+    if (m.index > pos) runs.push([py.slice(pos, m.index), null]);
+    const parts = splitWord(m[0]);
+    if (parts) runs.push(...parts); else runs.push([m[0], null]);
+    pos = m.index + m[0].length;
+  }
+  if (pos < py.length) runs.push([py.slice(pos), null]);
+  return runs;
+}
+const pyHtml = py => toneRuns(py).map(([s, t]) => t === null ? esc(s) : `<span class="t${t}">${esc(s)}</span>`).join("");
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
-const APP_VERSION = 6;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
+const APP_VERSION = 7;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
 let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {
@@ -830,7 +919,7 @@ function Flashcard(root, title, words, back) {
     }
     return `${tag}${known}
       <div class="big hz" style="${hzSize(w.hz, 96)}">${esc(w.hz)}</div>
-      <div class="py">${esc(w.py)}</div>
+      <div class="py">${pyHtml(w.py)}</div>
       <div class="vi">${esc(w.vi)}</div>
       ${w.hv ? `<div class="hv">Hán Việt: <i>${esc(w.hv)}</i></div>` : ""}`;
   }
@@ -1014,11 +1103,11 @@ function Quiz(root, title, words, pool, scope, back) {
     const doneQ = answered !== null;
     if (!reverse) {
       qcard.innerHTML = `<div class="big hz" style="${hzSize(q.hz, doneQ ? 84 : 110)}">${esc(q.hz)}</div>
-        ${doneQ ? `<div class="py">${esc(q.py)}</div>${q.hv ? `<div class="hv">Hán Việt: <i>${esc(q.hv)}</i></div>` : ""}`
+        ${doneQ ? `<div class="py">${pyHtml(q.py)}</div>${q.hv ? `<div class="hv">Hán Việt: <i>${esc(q.hv)}</i></div>` : ""}`
                 : `<div class="ask">Nghĩa của từ này là gì?</div>`}`;
     } else {
       qcard.innerHTML = `<div class="vi-front">${esc(q.vi)}</div>
-        ${doneQ ? `<div class="big hz" style="${hzSize(q.hz, 60)}">${esc(q.hz)}</div><div class="py">${esc(q.py)}</div>`
+        ${doneQ ? `<div class="big hz" style="${hzSize(q.hz, 60)}">${esc(q.hz)}</div><div class="py">${pyHtml(q.py)}</div>`
                 : `<div class="ask">Chọn chữ Hán đúng</div>`}`;
     }
     opts.innerHTML = options.map((w, i) => {
@@ -1073,7 +1162,7 @@ function Quiz(root, title, words, pool, scope, back) {
     if (done) return;
     const f = timer / Q_TIME;
     tbar.style.width = f * 100 + "%";
-    tbar.style.background = f > .5 ? "var(--good)" : f > .25 ? "var(--gold)" : "var(--accent)";
+    tbar.style.background = f > .5 ? "var(--good)" : f > .25 ? "var(--gold)" : "var(--bad)";
     raf = requestAnimationFrame(loop);
   }
   function finish() {
@@ -1209,13 +1298,13 @@ function Rain(root, title, words, pool, scope, back) {
     t.bad = .45;
     t.el.classList.add("bad");
     const [cx, cy] = center(t.el);
-    popup(`${t.word.hz} = ${t.word.vi}`, cx, cy, css("--accent"));
+    popup(`${t.word.hz} = ${t.word.vi}`, cx, cy, css("--bad"));
     if (!missed.includes(target)) missed.push(target);
     loseLife();
   }
   function miss() {
     const r = field.getBoundingClientRect();
-    popup(`Lỡ mất: ${target.hz}  ${target.py}`, r.left + r.width / 2, r.bottom - 40, css("--accent"));
+    popup(`Lỡ mất: ${target.hz}  ${target.py}`, r.left + r.width / 2, r.bottom - 40, css("--bad"));
     if (!missed.includes(target)) missed.push(target);
     setKnown(target, false);
     save();
@@ -1287,7 +1376,7 @@ function Results(root, o) {
     ${o.record && o.score ? `<span class="pill gold">Kỷ lục mới!</span>` : `<span class="muted">Kỷ lục: ${o.best}</span>`}
     <div class="stats3">${o.stats.map(([l, v]) => `<div><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join("")}</div>
     ${o.wrong.length ? `<h4>Từ cần ôn lại (${o.wrong.length})</h4>
-      <div class="wl">${shownWrong.map(w => `<div><span class="h hz">${esc(w.hz)}</span><span class="p">${esc(w.py)}</span><span class="v">${esc(w.vi)}</span></div>`).join("")}</div>
+      <div class="wl">${shownWrong.map(w => `<div><span class="h hz">${esc(w.hz)}</span><span class="p">${pyHtml(w.py)}</span><span class="v">${esc(w.vi)}</span></div>`).join("")}</div>
       ${o.wrong.length > 12 ? `<p class="muted">… và ${o.wrong.length - 12} từ nữa</p>` : ""}`
       : `<p class="good-t" style="font-weight:700;margin:6px 0 24px">Không sai câu nào. Tuyệt vời!</p>`}
     <div class="row">
@@ -1334,7 +1423,7 @@ function List(root, title, words, back) {
     <div class="table-wrap"><table>
       <thead><tr><th>Chữ Hán</th><th>Pinyin</th><th>Hán Việt</th><th>Nghĩa</th><th></th></tr></thead>
       <tbody>${words.map(w => `<tr>
-        <td class="h hz">${esc(w.hz)}</td><td class="p">${esc(w.py)}</td>
+        <td class="h hz">${esc(w.hz)}</td><td class="p">${pyHtml(w.py)}</td>
         <td class="v2">${w.rieng ? "tên riêng" : esc(w.hv)}</td><td>${esc(w.vi)}</td>
         <td class="ok">${isKnown(w) ? "✓" : ""}</td></tr>`).join("")}</tbody>
     </table></div>`;

@@ -649,7 +649,7 @@ const BOOKS = [
             ["吹", "chuī", "thổi", "xuy"],
             ["蜡烛", "làzhú", "cây nến", "lạp chúc"],
             ["女生", "nǚshēng", "học sinh nữ", "nữ sinh"],
-            ["卡拉OK", "kǎlā Ok", "karaoke", "ca lạp ok"],
+            ["卡拉OK", "kǎlā OK", "karaoke", "ca lạp ok"],
             ["但是", "dànshì", "nhưng, nhưng mà", "đãn thị"],
             ["晚", "wǎn", "muộn, tối", "vãn"],
             ["放心", "fàng xīn", "yên tâm", "phóng tâm"],

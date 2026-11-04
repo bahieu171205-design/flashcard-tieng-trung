@@ -164,7 +164,7 @@ class QuizScene(Scene):
             hz = draw_text(s, q.hz, size, C["ink"], (card.centerx, card.y + (card.h // 2 - 10 if not done else 82)),
                            "center")
             if done:
-                py = draw_text(s, q.py, 28, C["accent"], (card.centerx, hz.bottom + 8), "midtop", True)
+                py = ui.draw_pinyin(s, q.py, 28, (card.centerx, hz.bottom + 8), "midtop", True)
                 if q.hv:
                     draw_text(s, f"Hán Việt: {q.hv}", 16, C["muted"], (card.centerx, py.bottom + 8), "midtop")
             else:
@@ -174,7 +174,7 @@ class QuizScene(Scene):
             y = ui.draw_wrapped(s, q.vi, 32, C["ink"], card.centerx, top, card.w - 100, True, max_lines=2)
             if done:
                 hz = draw_text(s, q.hz, 54, C["ink"], (card.centerx, y + 8), "midtop")
-                draw_text(s, q.py, 24, C["accent"], (card.centerx, hz.bottom + 4), "midtop", True)
+                ui.draw_pinyin(s, q.py, 24, (card.centerx, hz.bottom + 4), "midtop", True)
             else:
                 draw_text(s, "Chọn chữ Hán đúng", 15, C["muted"], (card.centerx, card.bottom - 16), "midbottom")
 

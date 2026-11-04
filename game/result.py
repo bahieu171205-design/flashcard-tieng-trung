@@ -69,8 +69,8 @@ class ResultScene(Scene):
             for i, w in enumerate(self.wrong[:10]):
                 x = p.x + 50 + (i % 2) * (col_w + 20)
                 y = top + 36 + (i // 2) * 40
-                hz = draw_text(s, w.hz, 22, C["accent"], (x, y))
-                py = draw_text(s, w.py, 16, C["muted"], (hz.right + 10, hz.centery), "midleft")
+                hz = draw_text(s, w.hz, 22, C["bad"], (x, y))
+                py = ui.draw_pinyin(s, w.py, 16, (hz.right + 10, hz.centery), "midleft")
                 draw_text(s, ui.fit(w.vi, 16, x + col_w - py.right - 12), 16, C["ink"], (py.right + 10, hz.centery), "midleft")
             if len(self.wrong) > 10:
                 draw_text(s, f"… và {len(self.wrong) - 10} từ nữa", 15, C["muted"], (cx, top + 240), "center")

@@ -5,25 +5,28 @@ import pygame
 
 W, H = 1180, 780
 
+# màu lấy từ file PDF từ vựng Boya: navy #1F3A5F và 5 màu thanh điệu
 C = {
-    "bg": (246, 241, 231),
-    "surface": (255, 253, 248),
-    "ink": (42, 36, 32),
-    "muted": (122, 111, 102),
-    "line": (228, 219, 204),
-    "shadow": (226, 216, 199),
-    "accent": (184, 50, 42),
-    "accent_dark": (150, 38, 32),
-    "accent_soft": (246, 225, 221),
-    "tint": (251, 240, 236),  # nền nhạt cho các bài trong phạm vi đang chọn
-    "good": (47, 125, 79),
-    "good_soft": (220, 239, 226),
-    "bad": (184, 50, 42),
-    "bad_soft": (246, 225, 221),
-    "gold": (196, 140, 30),
-    "gold_soft": (250, 238, 205),
+    "bg": (243, 246, 250),
+    "surface": (255, 255, 255),
+    "ink": (31, 36, 48),
+    "muted": (85, 101, 122),
+    "line": (223, 230, 239),
+    "shadow": (221, 228, 238),
+    "accent": (31, 58, 95),
+    "accent_dark": (21, 41, 68),
+    "accent_soft": (227, 234, 244),
+    "tint": (236, 242, 250),  # nền nhạt cho các bài trong phạm vi đang chọn
+    "good": (22, 128, 60),
+    "good_soft": (220, 241, 227),
+    "bad": (214, 40, 57),
+    "bad_soft": (251, 227, 229),
+    "gold": (184, 115, 10),
+    "gold_soft": (252, 239, 214),
     "white": (255, 255, 255),
 }
+# thanh 1–4 và thanh nhẹ (0)
+TONE = {1: (214, 40, 57), 2: (180, 83, 9), 3: (22, 128, 60), 4: (43, 95, 217), 0: (107, 107, 107)}
 
 # Chữ Hán: Hiragino Sans GB; chữ Latin/tiếng Việt/pinyin: SF (font hệ thống).
 _LATIN = ["/System/Library/Fonts/SFNS.ttf", "/Library/Fonts/Arial Unicode.ttf"]
@@ -112,6 +115,29 @@ def text(s, size, color, bold=False):
         _text_cache.clear()
     _text_cache[k] = surf
     return surf
+
+
+def pinyin(py, size, bold=False, color=None):
+    """Pinyin tô màu theo thanh điệu từng âm tiết (giống sách); phần không phải pinyin dùng `color`."""
+    from .pinyin import tone_runs
+    k = ("py", py, size, bold, color)
+    surf = _text_cache.get(k)
+    if surf is None:
+        parts = [text(s, size, TONE[t] if t is not None else (color or C["ink"]), bold) for s, t in tone_runs(py)]
+        surf = pygame.Surface((sum(p.get_width() for p in parts), max(p.get_height() for p in parts)), pygame.SRCALPHA)
+        x = 0
+        for p in parts:
+            surf.blit(p, (x, 0))
+            x += p.get_width()
+        _text_cache[k] = surf
+    return surf
+
+
+def draw_pinyin(surf, py, size, pos, anchor="topleft", bold=False):
+    t = pinyin(py, size, bold)
+    r = t.get_rect(**{anchor: pos})
+    surf.blit(t, r)
+    return r
 
 
 def draw_text(surf, s, size, color, pos, anchor="topleft", bold=False):
@@ -213,7 +239,7 @@ def heart(surf, center, size, color):
 def hearts(surf, right, cy, lives, total=3):
     for i in range(total):
         cx = right - 18 - (total - 1 - i) * 34
-        heart(surf, (cx, cy), 26, C["accent"] if i < lives else C["line"])
+        heart(surf, (cx, cy), 26, C["bad"] if i < lives else C["line"])
 
 
 def check_icon(surf, center, color, s=1.0):
@@ -222,10 +248,10 @@ def check_icon(surf, center, color, s=1.0):
 
 
 STYLES = {
-    "default": (C["surface"], C["ink"], C["line"], (250, 246, 238)),
+    "default": (C["surface"], C["ink"], C["line"], (238, 243, 249)),
     "primary": (C["accent"], C["white"], C["accent"], C["accent_dark"]),
-    "good": (C["good_soft"], C["good"], C["good_soft"], (205, 232, 214)),
-    "bad": (C["bad_soft"], C["bad"], C["bad_soft"], (240, 212, 207)),
+    "good": (C["good_soft"], C["good"], C["good_soft"], (204, 234, 214)),
+    "bad": (C["bad_soft"], C["bad"], C["bad_soft"], (246, 210, 214)),
     "ghost": (C["bg"], C["ink"], C["line"], C["surface"]),
 }
 
@@ -298,7 +324,7 @@ class Toggle(Button):
 
     def draw(self, surf):
         r = self.rect.move(0, 2).inflate(-4, -2) if self.pressed() else self.rect
-        bg = C["accent_soft"] if self.on else (C["surface"] if not self.hovered() else (250, 246, 238))
+        bg = C["accent_soft"] if self.on else (C["surface"] if not self.hovered() else (238, 243, 249))
         rrect(surf, bg, r, radius=r.h // 2, border=1, border_color=C["accent"] if self.on else C["line"])
         draw_text(surf, self.label, self.size, C["accent"] if self.on else C["ink"], r.center, "center", self.on)
 
