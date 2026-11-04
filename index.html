@@ -142,14 +142,27 @@
   .good-t { color: var(--good); } .accent-t { color: var(--accent); }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 22px; }
   .grow { flex: 1; }
+  /* Bố cục cố định, không phụ thuộc độ dài chữ (số từ, số trên nút thay đổi khi đổi bài),
+     để đổi phạm vi không làm các nút nhảy dòng. Màn rộng: 1 hàng; màn hẹp: nút luôn ở hàng dưới. */
   .range-card {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px;
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px 18px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px;
     margin-bottom: 22px; box-shadow: var(--shadow);
   }
-  .range-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-weight: 600; }
-  .range-pick .muted { font-weight: 400; margin-left: 4px; }
-  .range-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .range-pick { display: flex; align-items: center; gap: 8px 10px; font-weight: 600; white-space: nowrap; }
+  .range-pick .muted { font-weight: 400; margin-left: 4px; min-width: 4.6em; font-variant-numeric: tabular-nums; }
+  .range-actions { display: grid; grid-template-columns: auto auto; gap: 10px; }
+  #mixbtn { min-width: 170px; }
+  #unkbtn { min-width: 232px; }
+  @media (max-width: 1000px) {
+    .range-card { grid-template-columns: 1fr; }
+    .range-actions { grid-template-columns: 1fr 1fr; }
+    #mixbtn, #unkbtn { min-width: 0; }
+  }
+  @media (max-width: 480px) {
+    .range-pick { flex-wrap: wrap; }
+    .range-actions { grid-template-columns: 1fr; }
+  }
   select {
     font: inherit; font-size: 16px; font-weight: 600; color: var(--ink); min-height: 44px;
     padding: 8px 34px 8px 14px; border-radius: 12px; border: 1px solid var(--line); background-color: var(--bg);

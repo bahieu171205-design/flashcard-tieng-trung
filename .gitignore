@@ -1,7 +1,10 @@
 # không đưa lên GitHub
+*.mov
+*.mp4
 *.pdf
+.DS_Store
 .venv/
+Lỗi/
 __pycache__/
 progress.json
 progress.tmp
-.DS_Store
