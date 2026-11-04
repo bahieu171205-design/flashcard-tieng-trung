@@ -1,0 +1,7 @@
+# không đưa lên GitHub
+*.pdf
+.venv/
+__pycache__/
+progress.json
+progress.tmp
+.DS_Store
