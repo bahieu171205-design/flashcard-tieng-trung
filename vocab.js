@@ -48,10 +48,7 @@ const BOOKS = [
             ["也", "yě", "cũng", "dã"],
             ["呢", "ne", "trợ từ", "ni"]
           ], "rieng": [
-            ["刘", "Liú", "Lưu (họ của người Trung Quốc)"],
-            ["刘明", "Liú Míng", "Lưu Minh (tên người)"],
             ["美国", "Měiguó", "nước Mỹ"],
-            ["玛丽", "Mǎlì", "Mary (tên người)"],
             ["加拿大", "Jiānádà", "Canada"],
             ["中国", "Zhōngguó", "Trung Quốc"]
           ]
@@ -72,7 +69,6 @@ const BOOKS = [
             ["朋友", "péngyou", "bạn bè", "bằng hữu"]
           ], "rieng": [
             ["汉日词典", "Hàn-Rì Cídiǎn", "Từ điển Trung-Nhật"],
-            ["中村", "Zhōngcūn", "họ người Nhật"],
             ["日本", "Rìběn", "Nhật Bản"]
           ]
           },
@@ -121,7 +117,6 @@ const BOOKS = [
             ["西边", "xībian", "phía tây", "tây biên"],
             ["对", "duì", "đúng", "đối"]
           ], "rieng": [
-            ["张红", "Zhāng Hóng", "Trương Hồng (tên người)"],
             ["北京大学", "Běijīng Dàxué", "Đại học Bắc Kinh"],
             ["清华大学", "Qīnghuá Dàxué", "Đại học Thanh Hoa"]
           ]
@@ -662,9 +657,7 @@ const BOOKS = [
             ["门口", "ménkǒu", "cổng, lối vào", "môn khẩu"],
             ["见面", "jiàn miàn", "gặp mặt", "kiến diện"],
             ["电脑", "diànnǎo", "máy tính", "điện não"]
-          ], "rieng": [
-            ["小美", "Xiǎoměi", "Tiểu Mỹ (tên người Trung Quốc)"]
-          ]
+          ], "rieng": []
           },
           { "bai": 25, "ten": "你该多锻炼锻炼了", "tu": [
             ["该", "gāi", "nên, cần phải, cần", "cai"],
@@ -752,7 +745,6 @@ const BOOKS = [
             ["趟", "tàng", "chuyến (lượng từ)", "thảng"]
           ], "rieng": [
             ["哈尔滨", "Hā'ērbīn", "Cáp Nhĩ Tân"],
-            ["张大鹏", "Zhāng Dàpéng", "Trương Đại Bằng (tên người)"],
             ["春节", "Chūnjié", "Tết Nguyên Đán"]
           ]
           },

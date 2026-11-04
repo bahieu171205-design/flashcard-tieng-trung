@@ -653,7 +653,7 @@ const pyHtml = py => toneRuns(py).map(([s, t]) => t === null ? esc(s) : `<span c
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
-const APP_VERSION = 7;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
+const APP_VERSION = 8;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
 let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {

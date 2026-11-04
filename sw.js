@@ -1,4 +1,4 @@
-const CACHE = "flashcard-zh-v7";
+const CACHE = "flashcard-zh-v8";
 const FILES = ["./", "./index.html", "./vocab.js", "./syllables.js", "./manifest.webmanifest",
                "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png"];
 
