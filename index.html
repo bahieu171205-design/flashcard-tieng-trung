@@ -174,7 +174,15 @@
   select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   @media (hover: hover) and (pointer: fine) { select:hover { border-color: var(--accent); } }
   .lesson.in { background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface)); }
-  .foot-actions { display: flex; justify-content: flex-end; margin-top: 22px; }
+  .foot-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; }
+  .ver { font-size: 13px; }
+  .toast {
+    position: fixed; z-index: 60; left: 50%; bottom: max(24px, env(safe-area-inset-bottom));
+    transform: translateX(-50%); background: var(--ink); color: var(--bg); font-weight: 600;
+    padding: 10px 18px; border-radius: 99px; box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    animation: toast 3.2s var(--ease) forwards; pointer-events: none; white-space: nowrap;
+  }
+  @keyframes toast { 0% { opacity: 0; transform: translate(-50%, 12px); } 8%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
   .section { font-size: 17px; margin: 0 0 12px; }
   .lessons { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
   .lesson {
@@ -501,13 +509,24 @@ function burst(x, y, color, n = 16) {
     el.addEventListener("animationend", () => el.remove());
   }
 }
+function toast(text) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = text;
+  document.body.appendChild(el);
+  el.addEventListener("animationend", () => el.remove());
+}
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
+const APP_VERSION = 5;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
-let cleanup = null, keyHandler = null;
+let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {
+  onHome = render === Home;
+  // có bản mới đang chờ: về màn chính thì tải lại để dùng bản mới
+  if (onHome && updateReady) return location.reload();
   if (cleanup) cleanup();
   cleanup = keyHandler = null;
   const el = document.createElement("div");
@@ -562,7 +581,10 @@ function Home(root) {
         <span class="bar"><i style="width:${n ? k / n * 100 : 0}%"></i></span>
       </button>`;
     }).join("")}</div>
-    <div class="foot-actions"><button class="btn ghost" data-act="reset">Xóa tiến độ</button></div>`;
+    <div class="foot-actions">
+      <span class="muted ver">Phiên bản ${APP_VERSION}</span>
+      <button class="btn ghost" data-act="reset">Xóa tiến độ</button>
+    </div>`;
 
   // cập nhật số từ, chữ trên nút và tô các bài trong phạm vi
   function updateRange() {
@@ -1239,8 +1261,29 @@ function List(root, title, words, back) {
 // Safari trên iPad chỉ hiện trạng thái :active (nút lún khi chạm) nếu trang có lắng nghe touchstart
 document.addEventListener("touchstart", () => {}, { passive: true });
 show(Home);
+
+// báo "Đã cập nhật" một lần khi vừa lên phiên bản mới
+try {
+  const seen = +localStorage.getItem("flashcard-zh-version") || 0;
+  if (seen && seen < APP_VERSION) toast(`Đã cập nhật lên phiên bản ${APP_VERSION}`);
+  localStorage.setItem("flashcard-zh-version", APP_VERSION);
+} catch (e) {}
+
+// Cập nhật: khi service worker mới nắm quyền (đã tải xong bản mới) thì tải lại trang.
+// Đang học dở thì đợi tới lúc quay về màn chính mới tải lại.
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => {
+    // iPad giữ app trong bộ nhớ: mỗi lần mở lại app thì kiểm tra bản mới
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") reg.update().catch(() => {});
+    });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController) return;  // lần cài đầu tiên, không phải bản cập nhật
+    updateReady = true;
+    if (onHome) location.reload();
+  });
 }
 </script>
 </body>
