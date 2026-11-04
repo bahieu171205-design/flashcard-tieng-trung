@@ -11,6 +11,8 @@ from .ui import C, H, W, Button, Toggle, draw_text, rrect
 CARD = pygame.Rect(0, 0, 780, 400)
 CARD.center = (W // 2, 340)
 FLIP_TIME = 0.3
+LEAVE_TIME = 0.2   # thẻ trượt ra
+ENTER_TIME = 0.2   # thẻ mới hiện vào
 
 
 def stack(surf, items, center_x, center_y, gap=10):
@@ -53,13 +55,15 @@ class FlashcardScene(Scene):
         self.wrong = []
         self.faces = {}
         self.done = not self.deck
+        self.leaving = None  # [hướng, màu viền hoặc None, thời gian] khi thẻ đang trượt ra
+        self.enter = 1.0     # 0→1: thẻ mới hiện dần vào
 
     @property
     def cur(self):
         return self.deck[self.i] if self.i < len(self.deck) else None
 
     def flip(self):
-        if self.done:
+        if self.done or self.leaving:
             return
         self.flipped = not self.flipped
         self.anim = 0.0
@@ -67,13 +71,18 @@ class FlashcardScene(Scene):
     def move(self, d):
         n = self.i + d
         if 0 <= n <= len(self.deck):
-            self.i, self.flipped, self.anim = n, False, 1.0
+            self.i, self.flipped, self.anim, self.enter = n, False, 1.0, 0.0
             if n == len(self.deck):
                 self.finish()
 
+    def leave(self, d, tone=None):
+        """Thẻ trượt ra trong LEAVE_TIME rồi mới sang thẻ khác; trong lúc đó bỏ qua thao tác."""
+        if not self.leaving and 0 <= self.i + d <= len(self.deck):
+            self.leaving = [d, tone, 0.0]
+
     def mark(self, known):
         w = self.cur
-        if not w:
+        if not w or self.leaving:
             return
         self.app.progress.set_known(w, known)
         self.faces.clear()
@@ -84,7 +93,7 @@ class FlashcardScene(Scene):
             self.wrong.append(w)
             self.app.audio.play("click")
         self.app.save()
-        self.move(1)
+        self.leave(1, "good" if known else "bad")
 
     def finish(self):
         self.done = True
@@ -116,17 +125,17 @@ class FlashcardScene(Scene):
             if k in (pygame.K_SPACE, pygame.K_UP, pygame.K_DOWN, pygame.K_RETURN):
                 self.flip()
             elif k == pygame.K_RIGHT:
-                self.move(1)
+                self.leave(1)
             elif k == pygame.K_LEFT:
-                self.move(-1)
+                self.leave(-1)
             elif k in (pygame.K_1, pygame.K_KP1):
                 self.mark(False)
             elif k in (pygame.K_2, pygame.K_KP2):
                 self.mark(True)
         elif self.btn_prev.clicked(e):
-            self.move(-1)
+            self.leave(-1)
         elif self.btn_next.clicked(e):
-            self.move(1)
+            self.leave(1)
         elif self.btn_bad.clicked(e):
             self.mark(False)
         elif self.btn_good.clicked(e):
@@ -136,6 +145,13 @@ class FlashcardScene(Scene):
 
     def update(self, dt):
         self.anim = min(1.0, self.anim + dt / FLIP_TIME)
+        self.enter = min(1.0, self.enter + dt / ENTER_TIME)
+        if self.leaving:
+            self.leaving[2] += dt
+            if self.leaving[2] >= LEAVE_TIME:
+                d = self.leaving[0]
+                self.leaving = None
+                self.move(d)
 
     # ---------- vẽ ----------
     def face(self, w, back_side):
@@ -190,8 +206,30 @@ class FlashcardScene(Scene):
         cw = max(2, int(CARD.w * scale))
         r = pygame.Rect(0, 0, cw, CARD.h)
         r.center = CARD.center
-        pygame.draw.rect(s, C["shadow"], r.move(0, 5), border_radius=24)
-        s.blit(face if cw == CARD.w else pygame.transform.smoothscale(face, (cw, CARD.h)), r)
+        img = face if cw == CARD.w else pygame.transform.smoothscale(face, (cw, CARD.h))
+        alpha = 255
+        if self.leaving:
+            # chuyển thẻ: trượt sang ngang; đánh dấu: bay lên với viền xanh (thuộc) / đỏ (chưa thuộc)
+            d, tone, t = self.leaving
+            q = min(1.0, t / LEAVE_TIME) ** 2
+            r = r.move(0, -int(110 * q)) if tone else r.move(-d * int(320 * q), 0)
+            alpha = int(255 * (1 - q))
+            if tone:
+                img = img.copy()
+                pygame.draw.rect(img, C[tone], img.get_rect(), 5, border_radius=24)
+        elif self.enter < 1:
+            # thẻ mới hiện dần, hơi phóng từ 96% lên 100%
+            q = 1 - (1 - self.enter) ** 3
+            k = .96 + .04 * q
+            img = pygame.transform.smoothscale(img, (int(r.w * k), int(r.h * k)))
+            r = img.get_rect(center=CARD.center)
+            alpha = int(255 * q)
+        if alpha >= 255:
+            pygame.draw.rect(s, C["shadow"], r.move(0, 5), border_radius=24)
+        else:
+            img = img.copy() if img is face else img
+            img.set_alpha(alpha)
+        s.blit(img, r)
 
         self.btn_prev.enabled = self.i > 0
         for b in (self.btn_prev, self.btn_bad, self.btn_good, self.btn_next):

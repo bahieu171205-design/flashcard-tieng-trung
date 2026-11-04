@@ -230,6 +230,25 @@ STYLES = {
 }
 
 
+class PressTracker:
+    """Nhấn chuột trên vùng nào thì vùng đó 'lún' xuống; thả chuột vẫn trong vùng mới tính là bấm
+    (kéo ra ngoài rồi thả để hủy)."""
+
+    def __init__(self):
+        self.armed = False
+
+    def clicked(self, e, rect):
+        if getattr(e, "button", 1) != 1:
+            return False
+        if e.type == pygame.MOUSEBUTTONDOWN:
+            self.armed = rect.collidepoint(e.pos)
+        elif e.type == pygame.MOUSEBUTTONUP:
+            hit = self.armed and rect.collidepoint(e.pos)
+            self.armed = False
+            return hit
+        return False
+
+
 class Button:
     def __init__(self, rect, label, style="default", size=18, bold=True, enabled=True, hint=None):
         self.rect = pygame.Rect(rect)
@@ -239,23 +258,32 @@ class Button:
         self.bold = bold
         self.enabled = enabled
         self.hint = hint  # chữ nhỏ ở góc, vd phím tắt
+        self.press = PressTracker()
 
     def hovered(self):
         return self.enabled and self.rect.collidepoint(pygame.mouse.get_pos())
 
+    def pressed(self):
+        return self.enabled and self.press.armed and self.hovered()
+
     def clicked(self, e):
-        return (self.enabled and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1
-                and self.rect.collidepoint(e.pos))
+        return self.enabled and self.press.clicked(e, self.rect)
 
     def draw(self, surf):
         bg, fg, border, hover_bg = STYLES[self.style]
         r = self.rect.copy()
-        if self.hovered():
+        shadow = 2 if self.enabled else 0
+        if self.pressed():
+            # đang nhấn: nút lún xuống, mất bóng
+            bg = hover_bg
+            r = r.move(0, 2).inflate(-4, -2)
+            shadow = 0
+        elif self.hovered():
             bg = hover_bg
             r.y -= 1
         if not self.enabled:
             bg, fg = C["bg"], C["line"]
-        rrect(surf, bg, r, radius=12, border=1, border_color=border, shadow=2 if self.enabled else 0)
+        rrect(surf, bg, r, radius=12, border=1, border_color=border, shadow=shadow)
         draw_text(surf, fit(self.label, self.size, r.w - 20, self.bold), self.size, fg, r.center, "center", self.bold)
         if self.hint:
             draw_text(surf, self.hint, 12, fg if self.style != "default" else C["muted"], (r.right - 9, r.bottom - 6), "bottomright")
@@ -269,7 +297,7 @@ class Toggle(Button):
         self.on = on
 
     def draw(self, surf):
-        r = self.rect
+        r = self.rect.move(0, 2).inflate(-4, -2) if self.pressed() else self.rect
         bg = C["accent_soft"] if self.on else (C["surface"] if not self.hovered() else (250, 246, 238))
         rrect(surf, bg, r, radius=r.h // 2, border=1, border_color=C["accent"] if self.on else C["line"])
         draw_text(surf, self.label, self.size, C["accent"] if self.on else C["ink"], r.center, "center", self.on)

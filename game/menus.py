@@ -3,7 +3,7 @@ import pygame
 
 from . import ui
 from .scene import Scene
-from .ui import C, H, W, Button, Toggle, draw_text, fit, rrect
+from .ui import C, H, W, Button, PressTracker, Toggle, draw_text, fit, rrect
 
 
 class HomeScene(Scene):
@@ -21,6 +21,7 @@ class HomeScene(Scene):
             col, row = i % self.COLS, i // self.COLS
             rect = pygame.Rect(40 + col * (tw + self.GAP), self.TOP + row * (self.TILE_H + self.GAP), tw, self.TILE_H)
             self.tiles.append((lesson, rect))
+        self.tile_press = [PressTracker() for _ in self.tiles]
 
     def handle(self, e):
         app = self.app
@@ -36,12 +37,12 @@ class HomeScene(Scene):
                 self.confirm_reset = 0
             else:
                 self.confirm_reset = 3
-        elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-            for lesson, rect in self.tiles:
-                if rect.collidepoint(e.pos):
+        elif e.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
+            for (lesson, rect), press in zip(self.tiles, self.tile_press):
+                if press.clicked(e, rect):
                     app.audio.play("click")
-                    app.go(ModeScene(app, f"Bài {lesson.bai} · {lesson.ten}", lesson.words, f"bai{lesson.bai}",
-                                     lesson.words))
+                    return app.go(ModeScene(app, f"Bài {lesson.bai} · {lesson.ten}", lesson.words,
+                                            f"bai{lesson.bai}", lesson.words))
 
     def update(self, dt):
         self.confirm_reset = max(0, self.confirm_reset - dt)
@@ -73,15 +74,16 @@ class HomeScene(Scene):
         draw_text(s, "Chọn bài học", 18, C["ink"], (40, 182), bold=True)
 
         mouse = pygame.mouse.get_pos()
-        for lesson, rect in self.tiles:
+        for (lesson, rect), press in zip(self.tiles, self.tile_press):
             n = len(lesson.words)
             k = sum(app.progress.is_known(w) for w in lesson.words)
             hov = rect.collidepoint(mouse)
+            down = hov and press.armed
             done = n and k == n
-            r = rect.move(0, -3) if hov else rect
+            r = rect.inflate(-8, -6) if down else rect.move(0, -3) if hov else rect
             border = C["accent"] if hov else C["good"] if done else C["line"]
             rrect(s, C["surface"], r, radius=14, border=2 if (hov or done) else 1, border_color=border,
-                  shadow=4 if hov else 2)
+                  shadow=0 if down else 4 if hov else 2)
             draw_text(s, f"Bài {lesson.bai}", 14, C["muted"], (r.x + 14, r.y + 11))
             draw_text(s, fit(lesson.ten, 19, r.w - 28, True), 19, C["ink"], (r.x + 14, r.y + 33), bold=True)
             draw_text(s, f"{k}/{n} từ đã thuộc", 13, C["muted"], (r.x + 14, r.bottom - 36))
@@ -109,6 +111,7 @@ class ModeScene(Scene):
         self.t_dir = Toggle((dx, 176, 220, 36), "", app.settings["reverse"])
         cw = (W - 80 - 3 * 20) // 4
         self.cards = [(m, pygame.Rect(40 + i * (cw + 20), 244, cw, 330)) for i, m in enumerate(MODES)]
+        self.card_press = [PressTracker() for _ in self.cards]
 
     def words(self):
         return [w for w in self.all if self.app.settings["rieng"] or not w.rieng]
@@ -136,10 +139,10 @@ class ModeScene(Scene):
             self.app.settings["rieng"] = self.t_rieng.on = not self.t_rieng.on
         elif self.t_dir.clicked(e):
             self.app.settings["reverse"] = self.t_dir.on = not self.t_dir.on
-        elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1 and self.words():
-            for (mode, *_), rect in self.cards:
-                if rect.collidepoint(e.pos):
-                    self.start(mode)
+        elif e.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP) and self.words():
+            for ((mode, *_), rect), press in zip(self.cards, self.card_press):
+                if press.clicked(e, rect):
+                    return self.start(mode)
 
     def draw(self, s):
         app = self.app
@@ -154,11 +157,12 @@ class ModeScene(Scene):
         self.t_dir.draw(s)
 
         mouse = pygame.mouse.get_pos()
-        for (mode, icon, name, desc, col), rect in self.cards:
+        for ((mode, icon, name, desc, col), rect), press in zip(self.cards, self.card_press):
             hov = bool(ws) and rect.collidepoint(mouse)
-            r = rect.move(0, -4) if hov else rect
+            down = hov and press.armed
+            r = rect.inflate(-10, -10) if down else rect.move(0, -4) if hov else rect
             rrect(s, C["surface"], r, radius=18, border=2 if hov else 1,
-                  border_color=C[col] if hov else C["line"], shadow=5 if hov else 2)
+                  border_color=C[col] if hov else C["line"], shadow=0 if down else 5 if hov else 2)
             pygame.draw.circle(s, C[col], (r.centerx, r.y + 72), 42)
             draw_text(s, icon, 40, C["white"], (r.centerx, r.y + 73), "center", True)
             draw_text(s, name, 23, C["ink"], (r.centerx, r.y + 132), "midtop", True)
@@ -170,6 +174,11 @@ class ModeScene(Scene):
             elif mode == "flash":
                 draw_text(s, f"{k}/{len(ws)} đã thuộc", 15, C["good"], (r.centerx, r.bottom - 26), "center", True)
         if not ws:
+            # không có từ nào: phủ mờ các thẻ để thấy rõ là không bấm được
+            for _, rect in self.cards:
+                veil = pygame.Surface(rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(veil, (*C["bg"], 170), veil.get_rect(), border_radius=18)
+                s.blit(veil, rect)
             draw_text(s, "Không còn từ nào ở đây — bạn đã thuộc hết!", 18, C["good"], (W // 2, 620), "center", True)
         draw_text(s, "Trong lúc chơi, nhấn Esc để quay lại màn này.", 14, C["muted"], (W // 2, H - 34), "center")
 

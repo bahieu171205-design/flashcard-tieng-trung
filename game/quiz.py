@@ -35,7 +35,7 @@ class QuizScene(Scene):
         self.idx = -1
         self.lives, self.score, self.combo, self.best_combo, self.correct = 3, 0, 0, 0, 0
         self.wrong = []
-        self.shake = 0
+        self.fx_t = 0  # thời gian kể từ lúc trả lời, dùng cho hiệu ứng đáp án
         self.next_question()
 
     # ---------- logic ----------
@@ -68,6 +68,7 @@ class QuizScene(Scene):
         if self.answered is not None or i >= len(self.options):
             return
         self.answered = i
+        self.fx_t = 0
         q = self.q
         audio = self.app.audio
         if i >= 0 and self.options[i] is q:
@@ -85,7 +86,6 @@ class QuizScene(Scene):
             self.combo = 0
             self.lives -= 1
             self.wrong.append(q)
-            self.shake = 0.45
             audio.play("bad")
             self.app.progress.set_known(q, False)
             self.wait = 2.2
@@ -138,7 +138,7 @@ class QuizScene(Scene):
             self.wait -= dt
             if self.wait <= 0:
                 self.next_question()
-        self.shake = max(0, self.shake - dt)
+        self.fx_t += dt
         self.particles.update(dt)
         self.popups.update(dt)
 
@@ -157,8 +157,7 @@ class QuizScene(Scene):
         ui.hearts(s, W - 40, 48, self.lives)
 
         # thẻ câu hỏi
-        dx = int(math.sin(self.shake * 40) * 12 * (self.shake / 0.45)) if self.shake else 0
-        card = QCARD.move(dx, 0)
+        card = QCARD
         rrect(s, C["surface"], card, radius=24, border=1, shadow=4)
         q, done = self.q, self.answered is not None
         if not self.reverse:
@@ -187,17 +186,31 @@ class QuizScene(Scene):
 
         # 4 đáp án
         mouse = pygame.mouse.get_pos()
+        t = self.fx_t
         for i, (w, r) in enumerate(zip(self.options, self.opt_rects)):
             bg, border, fg = C["surface"], C["line"], C["ink"]
             if done:
                 if w is q:
                     bg, border, fg = C["good_soft"], C["good"], C["good"]
+                    if i == self.answered:
+                        # chọn đúng: nảy lên 5% rồi về
+                        k = math.sin(math.pi * min(1, t / 0.3)) * .05
+                        r = r.inflate(int(r.w * k), int(r.h * k))
+                    elif t < 1.2:
+                        # chọn sai: đáp án đúng nhấp nháy viền để mắt tìm tới
+                        glow = r.inflate(14, 14)
+                        if math.sin(t * math.tau / 0.6) > 0:
+                            rrect(s, C["good_soft"], glow, radius=20)
                 elif i == self.answered:
                     bg, border, fg = C["bad_soft"], C["bad"], C["bad"]
+                    # đáp án sai vừa chọn rung, biên độ giảm dần
+                    amp = 10 * max(0, 1 - t / 0.45)
+                    r = r.move(int(math.sin(t * 45) * amp), 0)
                 else:
                     fg = C["muted"]
             elif r.collidepoint(mouse):
-                r = r.move(0, -2)
+                down = pygame.mouse.get_pressed()[0]
+                r = r.move(0, 2).inflate(-4, -2) if down else r.move(0, -2)
                 border = C["accent"]
             rrect(s, bg, r, radius=16, border=2, border_color=border, shadow=3)
             badge = pygame.Rect(r.x + 14, r.y + 14, 28, 28)
