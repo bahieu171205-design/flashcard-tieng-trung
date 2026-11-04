@@ -1,4 +1,3 @@
-"""Hiệu ứng âm thanh ngắn, tự tổng hợp (không cần file âm thanh)."""
 import array
 import math
 

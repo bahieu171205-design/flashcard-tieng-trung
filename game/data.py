@@ -1,4 +1,3 @@
-"""Đọc từ vựng từ vocab.js và lưu tiến độ học vào progress.json."""
 import json
 import re
 from dataclasses import dataclass

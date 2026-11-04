@@ -1,4 +1,3 @@
-"""Màu, font và các thành phần giao diện dùng chung."""
 import math
 import os
 

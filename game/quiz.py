@@ -1,4 +1,3 @@
-"""Chế độ trắc nghiệm: 4 đáp án, 3 mạng, đếm giờ, combo."""
 import math
 import random
 

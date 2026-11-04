@@ -1,4 +1,3 @@
-"""Chế độ Mưa chữ: chữ Hán rơi xuống, bấm đúng chữ mang nghĩa đang hiện ở dưới."""
 import random
 
 import pygame

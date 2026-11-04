@@ -1,8 +1,3 @@
-"""Mở game Flashcard tiếng Trung.
-
-Chạy: python3 run.py  (hoặc bấm Run trong VS Code)
-Lần đầu chạy, nếu máy chưa có pygame, script tự tạo môi trường .venv và cài pygame-ce.
-"""
 import os
 import subprocess
 import sys

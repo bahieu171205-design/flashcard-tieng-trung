@@ -1,4 +1,3 @@
-"""Màn hình chính (30 bài), màn chọn chế độ chơi và danh sách từ."""
 import pygame
 
 from . import ui

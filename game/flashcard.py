@@ -1,4 +1,3 @@
-"""Chế độ lật thẻ."""
 import math
 import random
 

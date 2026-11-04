@@ -1,4 +1,3 @@
-"""Màn kết quả sau Trắc nghiệm / Mưa chữ."""
 import pygame
 
 from . import ui

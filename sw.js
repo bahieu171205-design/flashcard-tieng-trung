@@ -1,6 +1,3 @@
-// Lưu sẵn các file của app để mở được khi không có mạng.
-// Khi có bản mới: service worker mới tải trọn bộ file mới về, rồi trang tự tải lại (xem index.html).
-// Luôn hỏi lại máy chủ (bỏ qua bộ nhớ đệm 10 phút của trình duyệt) để bản mới tới ngay.
 const CACHE = "flashcard-zh-v5";
 const FILES = ["./", "./index.html", "./vocab.js", "./manifest.webmanifest",
                "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png"];
