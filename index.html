@@ -679,7 +679,7 @@ const pyHtml = py => toneRuns(py).map(([s, t]) => t === null ? esc(s) : `<span c
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
-const APP_VERSION = 14;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
+const APP_VERSION = 15;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
 let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {
@@ -1440,7 +1440,8 @@ function Speak(root, title, words, scope, back) {
   const deck = sample(words.filter(w => hanOnly(w.hz)));
   let idx = -1, score = 0, combo = 0, bestCombo = 0, correct = 0, firstTry = 0, wrong = [];
   // micOn: mic bật liên tục cả lượt chơi (chỉ xin quyền một lần); ttsUntil: đang phát giọng mẫu thì bỏ qua tiếng mic thu được
-  let q, tries, phase, rec = null, timer = 0, done = false, micOn = true, ttsUntil = 0, fastEnds = 0;
+  // retries: số lần phiên nghe bị ngắt bất thường liên tiếp (mở lại chậm dần); netErr: lần ngắt gần nhất do mạng
+  let q, tries, phase, rec = null, timer = 0, done = false, micOn = true, ttsUntil = 0, retries = 0, netErr = false;
 
   if (!SpeechRec) {
     root.innerHTML = `<div class="panel"><h2>Trình duyệt chưa hỗ trợ</h2>
@@ -1491,7 +1492,8 @@ function Speak(root, title, words, scope, back) {
   function setMic() {
     mic.classList.toggle("on", micOn);
     mic.classList.toggle("ready", micOn && ready);
-    micSt.textContent = !micOn ? "Mic đang tắt" : ready ? "Mời bạn nói" : "Đang mở mic…";
+    micSt.textContent = !micOn ? "Mic đang tắt" : ready ? "Mời bạn nói"
+      : retries >= 2 ? (netErr ? "Mạng chập chờn — đang mở lại mic…" : "Mic bị ngắt — đang mở lại…") : "Đang mở mic…";
     mic.setAttribute("aria-label", micOn ? "Tắt micro" : "Bật micro");
     mic.title = micOn ? "Mic đang bật — bấm để tắt" : "Mic đang tắt — bấm để bật";
     skipBtn.textContent = phase === "done" ? "Từ tiếp →" : "Bỏ qua";
@@ -1591,6 +1593,7 @@ function Speak(root, title, words, scope, back) {
       if (phase === "ask") setTimeout(startRec, 400);  // đợi tiếng "sai" phát xong để mic không thu vào
     };
     r.onresult = e => {
+      retries = 0; netErr = false;
       try {
         for (let k = e.resultIndex; k < e.results.length; k++) {
           const res = e.results[k];
@@ -1612,23 +1615,30 @@ function Speak(root, title, words, scope, back) {
       if (e.error === "not-allowed" || e.error === "service-not-allowed")
         micOff(`<span class="no">Chưa được phép dùng micro.</span> Bấm biểu tượng ổ khóa cạnh thanh địa chỉ → Micro → <b>Cho phép</b>, rồi bấm 🎤.${location.protocol === "file:"
           ? " Nếu đang mở file trực tiếp, hãy chạy qua <b>localhost</b> (python -m http.server) để trình duyệt nhớ quyền." : ""}`);
-      else if (e.error === "network") micOff(`<span class="no">Cần kết nối mạng để nhận dạng giọng nói.</span> Có mạng lại thì bấm 🎤.`);
       else if (e.error === "audio-capture") micOff(`<span class="no">Không tìm thấy micro.</span> Cắm micro rồi bấm 🎤.`);
-      // no-speech / aborted: để onend tự mở lại
+      // network (dịch vụ nhận dạng của Chrome hay rớt vài giây) / no-speech / aborted: không tắt mic, để onend tự mở lại
+      else if (e.error === "network") netErr = true;
+      if (e.error !== "no-speech" && e.error !== "aborted") console.warn("SpeechRecognition:", e.error);
     };
     r.onend = () => {
       clearTimeout(settle);
       if (rec !== r) return;
-      rec = null;
-      // ngắt liền nhiều lần ngay sau khi mở: dừng hẳn, tránh vòng lặp
-      fastEnds = performance.now() - t0 < 1000 ? fastEnds + 1 : 0;
-      if (fastEnds >= 5) return micOff(`<span class="no">Micro bị ngắt liên tục.</span> Bấm 🎤 để thử lại.`);
-      setTimeout(startRec, 200);
+      rec = null; ready = false;
+      // Chrome tự đóng phiên khi im lặng lâu: mở lại ngay. Bị ngắt bất thường (vừa mở đã đóng, lỗi mạng):
+      // mở lại chậm dần (0,6 → 1,2 → 2,4 … tối đa 8 giây) để không quay vòng liên tục, nhưng không bao giờ tắt hẳn.
+      const odd = netErr || performance.now() - t0 < 1500;
+      retries = odd ? retries + 1 : 0;
+      setMic();
+      setTimeout(startRec, retries ? Math.min(8000, 300 * 2 ** retries) : 200);
     };
-    try { r.start(); } catch (e) { rec = null; }
+    try { r.start(); } catch (e) {
+      console.warn("SpeechRecognition.start:", e);
+      rec = null; retries++;
+      setTimeout(startRec, Math.min(8000, 300 * 2 ** retries));
+    }
   }
   function toggleMic() {
-    micOn = !micOn; fastEnds = 0;
+    micOn = !micOn; retries = 0; netErr = false;
     if (micOn) startRec(); else { stopRec(); stopMeter(); }
     setMic();
     if (phase === "ask") heardEl.innerHTML = idleMsg();
@@ -1712,7 +1722,9 @@ function Speak(root, title, words, scope, back) {
   };
   keyHandler = e => {
     if (e.key === "Escape") return back();
-    if (e.key === " " || e.key === "Enter") { e.preventDefault(); phase === "done" ? next() : toggleMic(); }
+    // Space mới bật/tắt mic; Enter chỉ dùng để sang từ tiếp (tránh lỡ tay tắt mic)
+    if (e.key === " ") { e.preventDefault(); phase === "done" ? next() : toggleMic(); }
+    else if (e.key === "Enter") { e.preventDefault(); if (phase === "done") next(); }
     else if (e.key.toLowerCase() === "m") speakModel();
   };
   // Chrome tải danh sách giọng đọc sau khi trang mở
