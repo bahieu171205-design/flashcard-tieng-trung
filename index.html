@@ -676,7 +676,7 @@ const pyHtml = py => toneRuns(py).map(([s, t]) => t === null ? esc(s) : `<span c
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
-const APP_VERSION = 12;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
+const APP_VERSION = 13;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
 let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {
@@ -1535,7 +1535,11 @@ function Speak(root, title, words, scope, back) {
       clearTimeout(settle);
       if (judged.has(k) || phase !== "ask" || rec !== r) return;
       judged.add(k);
+      // Chrome hay dồn câu nói sau vào chung kết quả của câu trước (đã chấm nên bị bỏ qua) → mic như bị "đơ".
+      // Nên chấm xong mỗi câu thì đóng phiên này, mở phiên mới cho câu sau.
+      stopRec();
       check(list);
+      if (phase === "ask") setTimeout(startRec, 400);  // đợi tiếng "sai" phát xong để mic không thu vào
     };
     r.onresult = e => {
       try {
