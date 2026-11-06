@@ -1,7 +1,7 @@
 {
   "name": "Flashcard Tiếng Trung",
   "short_name": "Flashcard 中文",
-  "description": "Học từ vựng Boya Sơ cấp I, 30 bài: lật thẻ, trắc nghiệm, mưa chữ.",
+  "description": "Học từ vựng Boya Sơ cấp I, 30 bài: lật thẻ, trắc nghiệm, mưa chữ, luyện nói.",
   "lang": "vi",
   "start_url": "./",
   "scope": "./",

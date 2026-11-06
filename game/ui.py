@@ -28,10 +28,20 @@ C = {
 # thanh 1–4 và thanh nhẹ (0)
 TONE = {1: (214, 40, 57), 2: (180, 83, 9), 3: (22, 128, 60), 4: (43, 95, 217), 0: (107, 107, 107)}
 
-# Chữ Hán: Hiragino Sans GB; chữ Latin/tiếng Việt/pinyin: SF (font hệ thống).
-_LATIN = ["/System/Library/Fonts/SFNS.ttf", "/Library/Fonts/Arial Unicode.ttf"]
+# Chữ Hán: Hiragino Sans GB (macOS) / Microsoft YaHei (Windows);
+# chữ Latin/tiếng Việt/pinyin: SF (macOS) / Segoe UI (Windows).
+_WINFONTS = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts")
+_LATIN = ["/System/Library/Fonts/SFNS.ttf", "/Library/Fonts/Arial Unicode.ttf",
+          os.path.join(_WINFONTS, "segoeui.ttf"), os.path.join(_WINFONTS, "arial.ttf"),
+          "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]
 _CJK = ["/System/Library/Fonts/Hiragino Sans GB.ttc", "/System/Library/Fonts/STHeiti Medium.ttc",
-        "/Library/Fonts/Arial Unicode.ttf"]
+        "/Library/Fonts/Arial Unicode.ttf",
+        os.path.join(_WINFONTS, "msyh.ttc"), os.path.join(_WINFONTS, "simhei.ttf"),
+        os.path.join(_WINFONTS, "simsun.ttc"),
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"]
+# file chữ đậm thật (Windows có sẵn); không có thì dùng tô đậm giả như trước
+_LATIN_BOLD = [os.path.join(_WINFONTS, "segoeuib.ttf"), os.path.join(_WINFONTS, "arialbd.ttf")]
+_CJK_BOLD = [os.path.join(_WINFONTS, "msyhbd.ttc"), os.path.join(_WINFONTS, "simhei.ttf")]
 
 
 def _first(paths):
@@ -39,6 +49,7 @@ def _first(paths):
 
 
 LATIN_PATH, CJK_PATH = _first(_LATIN), _first(_CJK)
+LATIN_BOLD_PATH, CJK_BOLD_PATH = _first(_LATIN_BOLD), _first(_CJK_BOLD)
 _fonts = {}
 _text_cache = {}
 
@@ -69,10 +80,14 @@ def font(kind, size, bold=False):
     if k not in _fonts:
         if kind == "cjk":
             # pygame tô đậm giả làm dính nét chữ Hán, nên dùng mặt chữ đậm thật W6 của Hiragino
-            if bold and CJK_PATH.endswith("Hiragino Sans GB.ttc"):
+            if bold and CJK_PATH and CJK_PATH.endswith("Hiragino Sans GB.ttc"):
                 _fonts[k] = _FaceFont(CJK_PATH, size, 2)
+            elif bold and CJK_BOLD_PATH:
+                _fonts[k] = pygame.font.Font(CJK_BOLD_PATH, size)
             else:
-                _fonts[k] = pygame.font.Font(CJK_PATH, size)
+                _fonts[k] = pygame.font.Font(CJK_PATH or LATIN_PATH, size)
+        elif bold and LATIN_BOLD_PATH:
+            _fonts[k] = pygame.font.Font(LATIN_BOLD_PATH, size)
         else:
             f = pygame.font.Font(LATIN_PATH, size)
             f.bold = bold
