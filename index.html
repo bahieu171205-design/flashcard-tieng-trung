@@ -374,6 +374,9 @@
   .mic:active { transform: scale(.94); }
   .mic.on { background: var(--bad); box-shadow: none; animation: mic 1.2s var(--ease) infinite; }
   .mic:not(.on) { opacity: .55; filter: grayscale(.6); }
+  .mic.on:not(.ready) { background: var(--gold); animation: none; }
+  .mic-status { max-width: 260px; margin: 12px auto 0; display: grid; gap: 6px; text-align: center; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .mic-status .lvl > i { transition: none; width: 0; }
   @keyframes mic { 0%, 100% { box-shadow: 0 0 0 0 var(--bad-soft); } 50% { box-shadow: 0 0 0 16px var(--bad-soft); } }
   .heard { max-width: 820px; margin: 18px auto 0; min-height: 70px; text-align: center; font-size: 17px; line-height: 1.5; }
   .heard .got { font-size: 28px; }
@@ -676,7 +679,7 @@ const pyHtml = py => toneRuns(py).map(([s, t]) => t === null ? esc(s) : `<span c
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 // ================= điều hướng màn hình =================
-const APP_VERSION = 13;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
+const APP_VERSION = 14;  // tăng mỗi lần sửa app (cùng với CACHE trong sw.js)
 const app = $("#app");
 let cleanup = null, keyHandler = null, onHome = false, updateReady = false;
 function show(render) {
@@ -1461,9 +1464,13 @@ function Speak(root, title, words, scope, back) {
       <button class="mic" data-act="mic" id="mic">🎤</button>
       <button class="btn ghost" data-act="skip" id="skip">Bỏ qua</button>
     </div>
+    <div class="mic-status"><span id="micst"></span><span class="bar lvl" title="Âm lượng mic thu được"><i id="lvl"></i></span></div>
     <div class="heard" id="heard" aria-live="polite"></div>
     <p class="keys">Mic bật liên tục, cứ đọc to · Space: bật/tắt mic hoặc sang từ tiếp · M: nghe mẫu · Esc: thoát</p>`;
   const qcard = $("#qcard", root), mic = $("#mic", root), heardEl = $("#heard", root), skipBtn = $("#skip", root);
+  const micSt = $("#micst", root), lvlEl = $("#lvl", root);
+  // ready: trình duyệt đã thật sự bắt đầu thu âm (mở phiên mới mất một chút thời gian); peak: âm lượng lớn nhất của câu đang nói
+  let ready = false, peak = 0, meter = null;
 
   function hud() {
     $("#score", root).textContent = score;
@@ -1483,6 +1490,8 @@ function Speak(root, title, words, scope, back) {
   }
   function setMic() {
     mic.classList.toggle("on", micOn);
+    mic.classList.toggle("ready", micOn && ready);
+    micSt.textContent = !micOn ? "Mic đang tắt" : ready ? "Mời bạn nói" : "Đang mở mic…";
     mic.setAttribute("aria-label", micOn ? "Tắt micro" : "Bật micro");
     mic.title = micOn ? "Mic đang bật — bấm để tắt" : "Mic đang tắt — bấm để bật";
     skipBtn.textContent = phase === "done" ? "Từ tiếp →" : "Bỏ qua";
@@ -1514,11 +1523,48 @@ function Speak(root, title, words, scope, back) {
     speechSynthesis.speak(u);
   }
   function stopRec() {
-    if (rec) { rec.onresult = rec.onerror = rec.onend = null; try { rec.abort(); } catch (e) {} }
+    if (rec) { rec.onresult = rec.onerror = rec.onend = rec.onaudiostart = null; try { rec.abort(); } catch (e) {} }
     rec = null;
+    ready = false; setMic();
+  }
+  // thanh âm lượng: mở thêm một luồng mic riêng chỉ để đo, giúp biết mic có thu được tiếng không
+  async function startMeter() {
+    if (meter || !navigator.mediaDevices?.getUserMedia) return;
+    meter = {};
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (done || !micOn || !meter) { stream.getTracks().forEach(t => t.stop()); meter = null; return; }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const an = ctx.createAnalyser();
+      an.fftSize = 1024;
+      ctx.createMediaStreamSource(stream).connect(an);
+      const buf = new Float32Array(an.fftSize);
+      meter = { stream, ctx, raf: 0 };
+      const tick = () => {
+        if (!meter || meter.ctx !== ctx) return;
+        an.getFloatTimeDomainData(buf);
+        let s = 0;
+        for (const v of buf) s += v * v;
+        const lvl = Math.min(1, Math.sqrt(s / buf.length) * 8);
+        if (ready && phase === "ask") peak = Math.max(peak, lvl);
+        lvlEl.style.width = lvl * 100 + "%";
+        lvlEl.style.background = lvl < .15 ? "var(--muted)" : "var(--good)";
+        meter.raf = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch (e) { meter = null; }
+  }
+  function stopMeter() {
+    if (meter?.stream) {
+      cancelAnimationFrame(meter.raf);
+      meter.stream.getTracks().forEach(t => t.stop());
+      meter.ctx.close().catch(() => {});
+    }
+    meter = null;
+    lvlEl.style.width = "0";
   }
   function micOff(msg) {
-    micOn = false; stopRec(); setMic();
+    micOn = false; stopRec(); stopMeter(); setMic();
     heardEl.innerHTML = msg;
   }
   // Một phiên nhận dạng chạy liên tục suốt lượt chơi; trình duyệt tự ngắt (im lặng lâu, mất mạng…) thì mở lại.
@@ -1527,6 +1573,9 @@ function Speak(root, title, words, scope, back) {
     const r = rec = new SpeechRec();
     r.lang = "zh-CN"; r.interimResults = true; r.maxAlternatives = 5; r.continuous = true;
     const t0 = performance.now();
+    peak = 0;
+    startMeter();
+    r.onaudiostart = () => { if (rec === r) { ready = true; setMic(); } };
     // mỗi câu nói là một kết quả (chỉ số k); chỉ chấm mỗi câu một lần
     const judged = new Set();
     let settle = 0;
@@ -1551,9 +1600,11 @@ function Speak(root, title, words, scope, back) {
           // vừa nghe ra đúng từ là chấm luôn, không đợi trình duyệt chốt câu
           if (list.some(a => judge(a, q)?.ok)) { grade(k, list); continue; }
           heardEl.innerHTML = `<span class="muted">Đang nghe…</span> <span class="got hz">${esc(list[0])}</span>`;
-          // trình duyệt chậm chốt câu: im lặng 1,2 giây thì chấm theo chữ đang nghe được
+          // trình duyệt chậm chốt câu: im lặng một lúc thì chấm theo chữ đang nghe được;
+          // nghe chưa đủ số chữ (có thể đang ngập ngừng giữa từ) thì đợi lâu hơn
+          const short = [...hanOnly(list[0])].length < [...hanOnly(q.hz)].length;
           clearTimeout(settle);
-          settle = setTimeout(() => grade(k, list), 1200);
+          settle = setTimeout(() => grade(k, list), short ? 2200 : 1300);
         }
       } catch (err) { console.error(err); }
     };
@@ -1578,7 +1629,7 @@ function Speak(root, title, words, scope, back) {
   }
   function toggleMic() {
     micOn = !micOn; fastEnds = 0;
-    if (micOn) startRec(); else stopRec();
+    if (micOn) startRec(); else { stopRec(); stopMeter(); }
     setMic();
     if (phase === "ask") heardEl.innerHTML = idleMsg();
   }
@@ -1617,7 +1668,8 @@ function Speak(root, title, words, scope, back) {
     }
     const gotTxt = hanOnly(said) || said || "";
     heardEl.innerHTML = `<span class="no">✗ Chưa đúng.</span> Máy nghe được: <span class="got hz">${esc(gotTxt)}</span>
-      ${hanOnly(said) ? `<span class="muted">(${esc(heardPy(said))})</span>` : ""}${hint ? `<br>${hint}` : ""}`;
+      ${hanOnly(said) ? `<span class="muted">(${esc(heardPy(said))})</span>` : ""}${hint ? `<br>${hint}` : ""}
+      ${meter?.stream && peak < .25 ? `<br><span class="no">Mic thu tiếng nhỏ</span> — nói to hơn hoặc ngồi gần máy hơn.` : ""}`;
     if (tries >= TRIES) {
       wrong.push(q);
       phase = "done";
@@ -1639,7 +1691,7 @@ function Speak(root, title, words, scope, back) {
   function finish() {
     if (done) return;
     done = true;
-    stopRec();
+    stopRec(); stopMeter();
     const best = bestScore("speak", scope), record = submitScore("speak", scope, score);
     sfx("end");
     show(r => Results(r, {
@@ -1667,7 +1719,7 @@ function Speak(root, title, words, scope, back) {
   if ("speechSynthesis" in window) speechSynthesis.getVoices();
   next();
   return () => {
-    done = true; clearTimeout(timer); stopRec();
+    done = true; clearTimeout(timer); stopRec(); stopMeter();
     if ("speechSynthesis" in window) speechSynthesis.cancel();
   };
 }
